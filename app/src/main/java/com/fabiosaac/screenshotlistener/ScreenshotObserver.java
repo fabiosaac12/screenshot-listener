@@ -31,8 +31,10 @@ public class ScreenshotObserver extends ContentObserver {
 
       if (path.toLowerCase().contains("screenshot")) {
         Intent notificationIntent = new Intent(context, ScreenshotObserverService.class);
+        notificationIntent.putExtra(ScreenshotObserverService.PATH_KEY, path);
+
         PendingIntent pendingIntent =
-          PendingIntent.getService(context, 1, notificationIntent, 0);
+          PendingIntent.getService(context, 8, notificationIntent, 0);
 
         Notification.Builder builder = new Notification.Builder(context,
           MainActivity.NOTIFICATION_NEW_SCREENSHOT_CHANNEL_ID)

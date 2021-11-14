@@ -1,25 +1,45 @@
 package com.fabiosaac.screenshotlistener;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
+import android.net.Uri;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.card.MaterialCardView;
+
+import java.io.File;
 
 public class ScreenshotWindow {
+  private final Context context;
   private final WindowManager windowManager;
-  private final LayoutInflater layoutInflater;
   private final View container;
   private final WindowManager.LayoutParams windowParams;
+  private final String screenshotPath;
+  private final DisplayMetrics displayMetrics;
 
-  public ScreenshotWindow(Context context) {
+  public ScreenshotWindow(Context context, String screenshotPath) {
+    Context themedContext = new ContextThemeWrapper(context, R.style.Theme_ScreenshotListener);
+    this.context = themedContext;
+
     windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-    layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    container = layoutInflater.inflate(R.layout.activity_main, null);
+
+    container = LayoutInflater.from(themedContext).inflate(R.layout.screenshot_window, null);
+
+    this.screenshotPath = screenshotPath;
 
     windowParams = new WindowManager.LayoutParams(0, 0, 0, 0,
       WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
@@ -29,23 +49,41 @@ public class ScreenshotWindow {
         | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
       PixelFormat.TRANSLUCENT);
 
+    displayMetrics = new DisplayMetrics();
+    windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+
     initializeWindowsParams();
-    initializeWindows();
+    initializeWindow();
   }
 
   private void initializeWindowsParams() {
-    DisplayMetrics displayMetrics = new DisplayMetrics();
-    windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-
     windowParams.gravity = Gravity.TOP | Gravity.LEFT;
-    windowParams.width = (int) (displayMetrics.widthPixels * 0.9);
-    windowParams.height = (int) (displayMetrics.heightPixels * 0.5);
-    windowParams.x = (int) (displayMetrics.widthPixels * 0.05);
-    windowParams.y = (int) (displayMetrics.heightPixels * 0.25);
+    windowParams.width = displayMetrics.widthPixels;
+    windowParams.height = displayMetrics.heightPixels;
+    windowParams.x = 0;
+    windowParams.y = 0;
   }
 
-  private void initializeWindows() {
-    Button closeButton = container.findViewById(R.id.closeButton);
+  private void initializeWindow() {
+    MaterialCardView cardView = container.findViewById(R.id.card);
+    ImageButton closeButton = container.findViewById(R.id.closeButton);
+    ImageView screenshotImageView = container.findViewById(R.id.screenshotImageView);
+    File imageFile = new File(screenshotPath);
+    RecyclerView albumList = container.findViewById(R.id.albumList);
+
+    cardView.getLayoutParams().width = (int) (windowParams.width * 0.9);
+
+    albumList.setAdapter(new AlbumListAdapter(context));
+    albumList.setLayoutManager(
+      new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+    );
+
+    Log.d("        screenshot path", screenshotPath);
+
+    if(imageFile.exists()){
+      Bitmap myBitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath());
+      screenshotImageView.setImageBitmap(myBitmap);
+    }
 
     closeButton.setOnClickListener(this::close);
   }

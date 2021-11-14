@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#A6000000">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card"
+        android:layout_width="360dp"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        app:cardCornerRadius="20dp"
+        app:contentPaddingBottom="20dp"
+        app:contentPaddingTop="20dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <RelativeLayout
+                android:id="@+id/header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="26dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:text="Save in"
+                    android:textColor="#D5000000"
+                    android:textSize="20sp" />
+
+                <ImageButton
+                    android:id="@+id/closeButton"
+                    android:layout_width="17dp"
+                    android:layout_height="17dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="#00FFFFFF"
+                    android:src="@drawable/ic_close" />
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/imageContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/header"
+                android:gravity="center"
+                android:paddingHorizontal="26dp">
+
+                <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.6">
+
+                    <ImageView
+                        android:id="@+id/screenshotImageView"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:paddingTop="10dp"
+                        tools:srcCompat="@tools:sample/avatars[0]" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.4">
+
+                    <ImageButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:background="#00FFFFFF"
+                        android:src="@drawable/ic_share" />
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+            <RelativeLayout
+                android:id="@+id/albumListContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/imageContainer"
+                android:layout_marginTop="20dp">
+
+                <TextView
+                    android:id="@+id/albumListTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="26dp"
+                    android:text="Albums"
+                    android:textColor="#B2000000"
+                    android:textSize="19sp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/albumList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/albumListTitle"
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/album_item">
+
+                </androidx.recyclerview.widget.RecyclerView>
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/newAlbumContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/albumListContainer"
+                android:layout_marginTop="20dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="26dp">
+
+                <EditText
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="20dp"
+                    android:layout_weight="0.7"
+                    android:background="@drawable/rounded_edittext"
+                    android:hint="New album name"
+                    android:paddingHorizontal="13dp"
+                    android:paddingVertical="6dp"
+                    android:textSize="16sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.3"
+                    android:backgroundTint="#33B5E5"
+                    android:text="Save"
+                    app:cornerRadius="100dp"
+                    app:elevation="1dp" />
+
+            </LinearLayout>
+
+
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</RelativeLayout>

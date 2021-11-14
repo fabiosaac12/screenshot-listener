@@ -49,14 +49,20 @@ public class MainActivity extends AppCompatActivity {
 
       NotificationChannel screenshotObserverServiceChannel = new NotificationChannel(
         screenshotObserverServiceChannelId, screenshotObserverServiceChannelName,
-        NotificationManager.IMPORTANCE_NONE);
+        NotificationManager.IMPORTANCE_MIN);
+
+      screenshotObserverServiceChannel.setSound(null, null);
+      screenshotObserverServiceChannel.setVibrationPattern(null);
 
       // NEW SCREENSHOT NOTIFICATION CHANNEL
       String newScreenshotChannelId = "new_screenshot_notification_channel_id";
       String newScreenshotChannelName = "New Screenshot";
 
       NotificationChannel newScreenshotChannel = new NotificationChannel(
-        newScreenshotChannelId, newScreenshotChannelName, NotificationManager.IMPORTANCE_NONE);
+        newScreenshotChannelId, newScreenshotChannelName, NotificationManager.IMPORTANCE_DEFAULT);
+
+      newScreenshotChannel.setSound(null, null);
+      newScreenshotChannel.setVibrationPattern(null);
 
       // CREATING CHANNELS
       notificationManager.createNotificationChannel(newScreenshotChannel);
