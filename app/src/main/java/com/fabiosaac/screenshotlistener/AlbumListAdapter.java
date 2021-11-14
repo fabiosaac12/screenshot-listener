@@ -25,23 +25,7 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
   public AlbumListAdapter(Context context) {
     this.context = context;
 
-    String[] projection = new String[]{MediaStore.MediaColumns.BUCKET_DISPLAY_NAME};
-
-    Cursor cursor = context.getContentResolver()
-      .query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null,
-        null, null);
-
-    HashSet<String> albumsHashSet = new HashSet<>();
-
-    while (cursor.moveToNext()) {
-      albumsHashSet.add(cursor.getString(
-        (cursor.getColumnIndex(MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME))
-      ));
-    }
-
-    cursor.close();
-
-    albums = new ArrayList<>(albumsHashSet);
+    albums = MediaManager.getAlbumList(context);
   }
 
   @NonNull

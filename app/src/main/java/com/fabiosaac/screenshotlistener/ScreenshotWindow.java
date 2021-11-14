@@ -78,8 +78,6 @@ public class ScreenshotWindow {
       new LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
     );
 
-    Log.d("        screenshot path", screenshotPath);
-
     if(imageFile.exists()){
       Bitmap myBitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath());
       screenshotImageView.setImageBitmap(myBitmap);

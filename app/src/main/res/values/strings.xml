@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ScreenshotListener</string>
+    <string name="app_name_abbreviation">sslistener</string>
 </resources>

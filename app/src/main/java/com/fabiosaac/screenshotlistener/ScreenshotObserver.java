@@ -14,6 +14,8 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import java.io.File;
+
 public class ScreenshotObserver extends ContentObserver {
   private static int NOTIFICATION_ID = 102;
   private final Context context;
@@ -29,7 +31,10 @@ public class ScreenshotObserver extends ContentObserver {
     if (uri != null) {
       String path = getPathFromUri(uri);
 
-      if (path.toLowerCase().contains("screenshot")) {
+      if (
+        path.toLowerCase().contains("screenshot")
+        && !path.contains(context.getString(R.string.app_name_abbreviation))
+      ) {
         Intent notificationIntent = new Intent(context, ScreenshotObserverService.class);
         notificationIntent.putExtra(ScreenshotObserverService.PATH_KEY, path);
 
