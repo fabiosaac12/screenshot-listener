@@ -1,6 +1,9 @@
 package com.fabiosaac.screenshotlistener;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.database.Cursor;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,17 +15,33 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 
 public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.AlbumItemHolder> {
   private final Context context;
   private final ArrayList<String> albums;
 
+  @SuppressLint("InlinedApi")
   public AlbumListAdapter(Context context) {
     this.context = context;
-    this.albums = new ArrayList<>(
-      Arrays.asList("New album", "Some Album", "Photos", "Screenshots", "Good food", "photos pro")
-    );
+
+    String[] projection = new String[]{MediaStore.MediaColumns.BUCKET_DISPLAY_NAME};
+
+    Cursor cursor = context.getContentResolver()
+      .query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null,
+        null, null);
+
+    HashSet<String> albumsHashSet = new HashSet<>();
+
+    while (cursor.moveToNext()) {
+      albumsHashSet.add(cursor.getString(
+        (cursor.getColumnIndex(MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME))
+      ));
+    }
+
+    cursor.close();
+
+    albums = new ArrayList<>(albumsHashSet);
   }
 
   @NonNull
@@ -61,9 +80,18 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
 
       if (position == 0) {
         layoutParams.leftMargin = (int) (26 * context.getResources().getDisplayMetrics().density);
+        layoutParams.rightMargin = (int) (4 * context.getResources().getDisplayMetrics().density);
+
         button.setLayoutParams(layoutParams);
       } else if (position == (albums.size() - 1)) {
         layoutParams.rightMargin = (int) (26 * context.getResources().getDisplayMetrics().density);
+        layoutParams.leftMargin = (int) (4 * context.getResources().getDisplayMetrics().density);
+
+        button.setLayoutParams(layoutParams);
+      } else {
+        layoutParams.rightMargin = (int) (4 * context.getResources().getDisplayMetrics().density);
+        layoutParams.leftMargin = (int) (4 * context.getResources().getDisplayMetrics().density);
+
         button.setLayoutParams(layoutParams);
       }
 
