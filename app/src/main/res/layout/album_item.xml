@@ -4,10 +4,10 @@
     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:textColor="#33B5E5"
+    android:textColor="?android:attr/colorPrimary"
     app:cornerRadius="100dp"
     app:elevation="0dp"
-    app:strokeColor="#33B5E5"
+    app:strokeColor="?android:attr/colorPrimary"
     app:strokeWidth="2dp"
     android:layout_marginHorizontal="4dp"
     android:id="@+id/button"/>

@@ -2,8 +2,6 @@ package com.fabiosaac.screenshotlistener;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.database.Cursor;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,15 +13,23 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+
+interface AlbumListItemOnClickListener {
+  public abstract void handleSaveImage(String albumName);
+}
 
 public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.AlbumItemHolder> {
   private final Context context;
   private final ArrayList<String> albums;
+  private final AlbumListItemOnClickListener albumListItemOnClickListener;
 
   @SuppressLint("InlinedApi")
-  public AlbumListAdapter(Context context) {
+  public AlbumListAdapter(
+    Context context,
+    AlbumListItemOnClickListener albumListItemOnClickListener
+  ) {
     this.context = context;
+    this.albumListItemOnClickListener = albumListItemOnClickListener;
 
     albums = MediaManager.getAlbumList(context);
   }
@@ -80,6 +86,7 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
       }
 
       this.button.setText(album);
+      this.button.setOnClickListener(view -> albumListItemOnClickListener.handleSaveImage(album));
     }
   }
 }

@@ -12,7 +12,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -74,7 +73,6 @@ public class MediaManager {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q){
       File outputDirectory = new File(outputDirectoryPath);
 
-
       if (!outputDirectory.exists()) {
         if (!outputDirectory.mkdir()) {
           throw new Exception("Can't create album");
@@ -104,5 +102,31 @@ public class MediaManager {
     fos.close();
 
     refreshFileInGallery(context, new File(outputDirectoryPath, newFileName));
+  }
+
+  public static String getPathFromUri(Context context, Uri uri) {
+    String path;
+
+    try {
+      Cursor cursor =
+        context.getContentResolver()
+          .query(uri, null, null, null, null);
+
+      if (cursor == null) {
+        path = uri.getPath();
+      } else {
+        cursor.moveToFirst();
+
+        int index = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+
+        path = cursor.getString(index);
+
+        cursor.close();
+      }
+    } catch (Exception exception) {
+      path = "";
+    }
+
+    return path;
   }
 }
