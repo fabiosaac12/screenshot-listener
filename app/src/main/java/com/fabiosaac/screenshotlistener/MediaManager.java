@@ -12,9 +12,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -56,11 +58,29 @@ public class MediaManager {
       if (file.delete()) {
         refreshFileInGallery(context, file);
 
+        Log.d("    Deleted", "Successfully");
+
         return true;
       }
     }
 
     throw new Exception("Not able to delete image");
+  }
+
+  public static File copyImageToCache(Context context, File file) throws IOException {
+    File cacheFile = File.createTempFile(
+      System.currentTimeMillis() + "-temporary", ".jpg", context.getCacheDir()
+    );
+
+    OutputStream fos = new FileOutputStream(cacheFile);
+
+    BitmapFactory.decodeFile(file.getAbsolutePath())
+      .compress(Bitmap.CompressFormat.JPEG, 100, fos);
+
+    fos.flush();
+    fos.close();
+
+    return cacheFile;
   }
 
   public static void saveImageInAlbum(Context context, File file, String album) throws Exception {

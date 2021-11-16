@@ -12,7 +12,8 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:layout_weight="0.025" />
+        android:layout_weight="0.025"
+        tools:ignore="UselessLeaf" />
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -36,8 +37,8 @@
                     android:id="@+id/header"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingHorizontal="26dp"
-                    android:layout_marginBottom="14dp">
+                    android:layout_marginBottom="14dp"
+                    android:paddingHorizontal="26dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -75,15 +76,29 @@
                             android:paddingHorizontal="26dp">
 
                             <RelativeLayout
+                                android:id="@+id/imageWrapper"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="0.6">
 
-                                <ImageView
-                                    android:id="@+id/screenshotImageView"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="200dp"
-                                    tools:srcCompat="@tools:sample/avatars[0]" />
+                                <com.google.android.material.card.MaterialCardView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerInParent="true"
+                                    app:cardCornerRadius="10dp"
+                                    app:cardElevation="1dp">
+
+                                    <ImageView
+                                        android:id="@+id/screenshotImageView"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:adjustViewBounds="true"
+                                        android:contentDescription="Screenshot"
+                                        android:maxHeight="350dp"
+                                        tools:srcCompat="@tools:sample/backgrounds/scenic" />
+
+                                </com.google.android.material.card.MaterialCardView>
+
 
                             </RelativeLayout>
 
@@ -93,6 +108,7 @@
                                 android:layout_weight="0.4">
 
                                 <ImageButton
+                                    android:id="@+id/shareButton"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_centerHorizontal="true"
