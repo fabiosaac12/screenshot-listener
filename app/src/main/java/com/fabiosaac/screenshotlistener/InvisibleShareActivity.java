@@ -29,7 +29,7 @@ public class InvisibleShareActivity extends Activity {
 
         try {
           screenshotCacheFile = MediaManager.copyImageToCache(this, screenshotFile);
-        } catch (IOException e) {
+        } catch (Exception e) {
           e.printStackTrace();
 
           Toast.makeText(

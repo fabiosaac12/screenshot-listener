@@ -58,8 +58,6 @@ public class MediaManager {
       if (file.delete()) {
         refreshFileInGallery(context, file);
 
-        Log.d("    Deleted", "Successfully");
-
         return true;
       }
     }
@@ -67,7 +65,7 @@ public class MediaManager {
     throw new Exception("Not able to delete image");
   }
 
-  public static File copyImageToCache(Context context, File file) throws IOException {
+  public static File copyImageToCache(Context context, File file) throws Exception {
     File cacheFile = File.createTempFile(
       System.currentTimeMillis() + "-temporary", ".jpg", context.getCacheDir()
     );

@@ -1,25 +1,26 @@
 package com.fabiosaac.screenshotlistener;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
-import android.net.Uri;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.WindowInsets;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -33,36 +34,42 @@ import java.io.File;
 public class ScreenshotWindow {
   private final Context context;
   private final WindowManager windowManager;
-  private final View container;
+  private final ViewGroup container;
   private final WindowManager.LayoutParams windowParams;
   private final String screenshotPath;
   private final DisplayMetrics displayMetrics;
 
+  MaterialCardView cardView;
+  ImageButton closeButton;
+  ImageButton shareButton;
+  ImageButton deleteButton;
+  ImageView screenshotImageView;
+  RecyclerView albumList;
+  EditText albumNameInput;
+  MaterialButton saveButton;
+
+  @SuppressLint("InflateParams")
   public ScreenshotWindow(Context context, String screenshotPath) {
-    Context themedContext = new ContextThemeWrapper(context, R.style.Theme_ScreenshotListener);
-    this.context = themedContext;
-
-    windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-
-    container = LayoutInflater.from(themedContext).inflate(R.layout.screenshot_window, null);
-
+    this.context = new ContextThemeWrapper(context, R.style.Theme_ScreenshotListener);
     this.screenshotPath = screenshotPath;
+    this.container = (LinearLayout)
+      LayoutInflater.from(this.context).inflate(R.layout.screenshot_window, null);
 
-    windowParams = new WindowManager.LayoutParams(0, 0, 0, 0,
+    this.windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+    this.windowParams = new WindowManager.LayoutParams(0, 0, 0, 0,
       WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
       WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
         | WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
       PixelFormat.TRANSLUCENT);
-
-    displayMetrics = new DisplayMetrics();
+    this.displayMetrics = new DisplayMetrics();
     windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 
-    initializeWindowsParams();
-    initializeWindow();
+    initializeWindowParams();
+    initializeViews();
   }
 
-  private void initializeWindowsParams() {
-    windowParams.gravity = Gravity.TOP | Gravity.LEFT;
+  private void initializeWindowParams() {
+    windowParams.gravity = Gravity.TOP | Gravity.START;
     windowParams.width = WindowManager.LayoutParams.MATCH_PARENT;
     windowParams.height = WindowManager.LayoutParams.MATCH_PARENT;
     windowParams.x = 0;
@@ -70,16 +77,65 @@ public class ScreenshotWindow {
     windowParams.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
   }
 
-  private void initializeWindow() {
-    // Initialization of layout elements
-    MaterialCardView cardView = container.findViewById(R.id.card);
-    ImageButton closeButton = container.findViewById(R.id.closeButton);
-    ImageButton shareButton = container.findViewById(R.id.shareButton);
-    RelativeLayout imageWrapper = container.findViewById(R.id.imageWrapper);
-    ImageView screenshotImageView = container.findViewById(R.id.screenshotImageView);
-    RecyclerView albumList = container.findViewById(R.id.albumList);
-    EditText albumNameInput = container.findViewById(R.id.albumNameInput);
-    MaterialButton saveButton = container.findViewById(R.id.saveButton);
+  private void findViews() {
+    cardView = container.findViewById(R.id.card);
+    closeButton = container.findViewById(R.id.closeButton);
+    shareButton = container.findViewById(R.id.shareButton);
+    deleteButton = container.findViewById(R.id.deleteButton);
+    screenshotImageView = container.findViewById(R.id.screenshotImageView);
+    albumList = container.findViewById(R.id.albumList);
+    albumNameInput = container.findViewById(R.id.albumNameInput);
+    saveButton = container.findViewById(R.id.saveButton);
+  }
+
+  private void setButtonOnClickListeners() {
+    // Save Button event to save image
+    saveButton.setOnClickListener(button -> {
+      disableButtons(container);
+
+      handleSaveImage(albumNameInput.getText().toString());
+    });
+
+    // Share Button event to share image
+    shareButton.setOnClickListener(button -> {
+      disableButtons(container);
+
+      Intent shareActivityIntent = new Intent(context, InvisibleShareActivity.class);
+      shareActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      shareActivityIntent.putExtra(InvisibleShareActivity.SCREENSHOT_PATH_KEY, screenshotPath);
+
+      context.startActivity(shareActivityIntent);
+      close();
+    });
+
+    // Close Button event to close the window
+    closeButton.setOnClickListener(button -> {
+      disableButtons(container);
+
+      close();
+    });
+
+    // Close Button event to delete screenshot
+    deleteButton.setOnClickListener(button -> {
+      disableButtons(container);
+
+      try {
+        MediaManager.deleteImage(context, new File(screenshotPath));
+
+        Toast.makeText(context, "Screenshot deleted successfully", Toast.LENGTH_SHORT).show();
+      } catch (Exception exception) {
+        exception.printStackTrace();
+
+        Toast.makeText(context, "Unable to delete screenshot", Toast.LENGTH_SHORT).show();
+      }
+
+      close();
+    });
+  }
+
+  private void initializeViews() {
+    findViews();
+    setButtonOnClickListeners();
 
     // Album Name Input text changed event
     albumNameInput.addTextChangedListener(new TextWatcher() {
@@ -97,19 +153,6 @@ public class ScreenshotWindow {
 
         saveButton.setEnabled(text.length() > 0 && text.trim().equals(text));
       }
-    });
-
-    // Save Button event to save image
-    saveButton.setOnClickListener(button -> handleSaveImage(albumNameInput.getText().toString()));
-
-    // Share Button event to share image
-    shareButton.setOnClickListener(button -> {
-      Intent shareActivityIntent = new Intent(context, InvisibleShareActivity.class);
-      shareActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-      shareActivityIntent.putExtra(InvisibleShareActivity.SCREENSHOT_PATH_KEY, screenshotPath);
-
-      context.startActivity(shareActivityIntent);
-      close();
     });
 
     // Card View width depending on device's screen width
@@ -132,12 +175,11 @@ public class ScreenshotWindow {
 
       screenshotImageView.setImageBitmap(bitmap);
     }
-
-    // Close Button event to close the window
-    closeButton.setOnClickListener(view -> close());
   }
 
   public void handleSaveImage(String albumName) {
+    disableButtons(container);
+
     try {
       MediaManager
         .saveImageInAlbum(context, new File(screenshotPath), albumName);
@@ -153,8 +195,25 @@ public class ScreenshotWindow {
     close();
   }
 
+  public void disableButtons(ViewGroup container) {
+    int childCount = container.getChildCount();
+
+    for (int i = 0; i < childCount; i++) {
+      View view = container.getChildAt(i);
+
+      view.setEnabled(false);
+
+      if (view instanceof ViewGroup) {
+        disableButtons((ViewGroup) view);
+      }
+    }
+  }
+
   public void open() {
     try {
+      Animation slideUp = AnimationUtils.loadAnimation(context, R.anim.slide_up);
+      cardView.setAnimation(slideUp);
+
       windowManager.addView(container, windowParams);
     } catch (Exception exception) {
       exception.printStackTrace();
@@ -163,7 +222,21 @@ public class ScreenshotWindow {
 
   public void close() {
     try {
-      windowManager.removeView(container);
+      Animation slideDown = AnimationUtils.loadAnimation(context, R.anim.slide_down);
+      slideDown.setAnimationListener(new Animation.AnimationListener() {
+        @Override
+        public void onAnimationStart(Animation animation) {}
+
+        @Override
+        public void onAnimationEnd(Animation animation) {
+          windowManager.removeView(container);
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {}
+      });
+
+      cardView.startAnimation(slideDown);
     } catch (Exception exception) {
       exception.printStackTrace();
     }
