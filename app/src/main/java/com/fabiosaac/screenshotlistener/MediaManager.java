@@ -12,11 +12,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,7 +44,7 @@ public class MediaManager {
 
   public static void refreshFileInGallery(Context context, File file) {
     MediaScannerConnection.scanFile(
-      context,
+      context.getApplicationContext(),
       new String[]{file.toString()},
       null,
       null

@@ -8,12 +8,11 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 
 public class ScreenshotObserverService extends Service {
-  public static final String PATH_KEY = "PATH";
+  public static final String EXTRA_SCREENSHOT_PATH = "EXTRA_SCREENSHOT_PATH";
   private static final int FOREGROUND_SERVICE_ID = 101;
   private ScreenshotObserver screenshotObserver;
 
@@ -57,7 +56,7 @@ public class ScreenshotObserverService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     if (intent != null) {
-      String path = intent.getStringExtra(PATH_KEY);
+      String path = intent.getStringExtra(EXTRA_SCREENSHOT_PATH);
 
       if (path != null) {
         ScreenshotWindow screenshotWindow = new ScreenshotWindow(this, path);

@@ -44,9 +44,8 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-
         <receiver
-            android:name=".BootReceiver"
+            android:name=".BroadcastActionReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>

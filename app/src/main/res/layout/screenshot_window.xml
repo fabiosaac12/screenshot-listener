@@ -53,16 +53,17 @@
                         android:id="@+id/closeButton"
                         android:layout_width="35dp"
                         android:layout_height="35dp"
-                        android:cropToPadding="true"
-                        android:padding="10dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:background="#00FFFFFF"
+                        android:cropToPadding="true"
+                        android:padding="10dp"
                         android:src="@drawable/ic_close" />
 
                 </RelativeLayout>
 
                 <ScrollView
+                    android:id="@+id/scrollView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
@@ -87,9 +88,9 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_centerInParent="true"
+                                    android:layout_margin="1dp"
                                     app:cardCornerRadius="10dp"
-                                    app:cardElevation="1dp"
-                                    android:layout_margin="1dp">
+                                    app:cardElevation="1dp">
 
                                     <ImageView
                                         android:id="@+id/screenshotImageView"
@@ -114,17 +115,17 @@
                                     android:id="@+id/shareButton"
                                     android:layout_width="wrap_content"
                                     android:layout_height="50dp"
+                                    android:layout_weight="1"
                                     android:background="#00FFFFFF"
-                                    android:src="@drawable/ic_share"
-                                    android:layout_weight="1"/>
+                                    android:src="@drawable/ic_share" />
 
                                 <ImageButton
                                     android:id="@+id/deleteButton"
                                     android:layout_width="wrap_content"
                                     android:layout_height="50dp"
+                                    android:layout_weight="1"
                                     android:background="#00FFFFFF"
-                                    android:src="@drawable/ic_delete"
-                                    android:layout_weight="1" />
+                                    android:src="@drawable/ic_delete" />
 
                             </LinearLayout>
 
@@ -164,21 +165,37 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_below="@id/albumListContainer"
-                            android:layout_marginVertical="20dp"
                             android:gravity="center_vertical"
-                            android:paddingHorizontal="26dp">
+                            android:paddingHorizontal="26dp"
+                            android:layout_marginBottom="15dp">
 
-                            <EditText
-                                android:id="@+id/albumNameInput"
+                            <RelativeLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginRight="20dp"
-                                android:layout_weight="0.7"
-                                android:background="@drawable/rounded_edittext"
-                                android:hint="New album name"
-                                android:paddingHorizontal="13dp"
-                                android:paddingVertical="6dp"
-                                android:textSize="16sp" />
+                                android:layout_weight="0.7">
+
+                                <ImageView
+                                    android:layout_centerVertical="true"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="33dp"
+                                    android:layout_marginRight="20dp"
+                                    android:background="@drawable/rounded_edittext" />
+
+                                <EditText
+                                    android:background="@null"
+                                    android:textAlignment="textStart"
+                                    android:id="@+id/albumNameInput"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginRight="20dp"
+                                    android:hint="New album name"
+                                    android:paddingStart="12dp"
+                                    android:paddingEnd="12dp"
+                                    android:paddingTop="25dp"
+                                    android:paddingBottom="25dp"
+                                    android:textSize="16sp" />
+
+                            </RelativeLayout>
 
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/saveButton"

@@ -9,10 +9,9 @@ import android.widget.Toast;
 import androidx.core.content.FileProvider;
 
 import java.io.File;
-import java.io.IOException;
 
 public class InvisibleShareActivity extends Activity {
-  public static String SCREENSHOT_PATH_KEY = "screenshot_path_key";
+  public static String EXTRA_SCREENSHOT_PATH = "EXTRA_SCREENSHOT_PATH";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +20,7 @@ public class InvisibleShareActivity extends Activity {
     Intent intent = getIntent();
 
     if (intent != null) {
-      String screenshotPath = intent.getStringExtra(SCREENSHOT_PATH_KEY);
+      String screenshotPath = intent.getStringExtra(EXTRA_SCREENSHOT_PATH);
 
       if (screenshotPath != null) {
         File screenshotFile = new File(screenshotPath);

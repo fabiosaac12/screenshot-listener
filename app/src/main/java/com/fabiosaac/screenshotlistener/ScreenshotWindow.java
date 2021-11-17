@@ -21,6 +21,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -39,14 +40,15 @@ public class ScreenshotWindow {
   private final String screenshotPath;
   private final DisplayMetrics displayMetrics;
 
-  MaterialCardView cardView;
-  ImageButton closeButton;
-  ImageButton shareButton;
-  ImageButton deleteButton;
-  ImageView screenshotImageView;
-  RecyclerView albumList;
-  EditText albumNameInput;
-  MaterialButton saveButton;
+  private ScrollView scrollView;
+  private MaterialCardView cardView;
+  private ImageButton closeButton;
+  private ImageButton shareButton;
+  private ImageButton deleteButton;
+  private ImageView screenshotImageView;
+  private RecyclerView albumList;
+  private EditText albumNameInput;
+  private MaterialButton saveButton;
 
   @SuppressLint("InflateParams")
   public ScreenshotWindow(Context context, String screenshotPath) {
@@ -86,6 +88,7 @@ public class ScreenshotWindow {
     albumList = container.findViewById(R.id.albumList);
     albumNameInput = container.findViewById(R.id.albumNameInput);
     saveButton = container.findViewById(R.id.saveButton);
+    scrollView = container.findViewById(R.id.scrollView);
   }
 
   private void setButtonOnClickListeners() {
@@ -102,7 +105,7 @@ public class ScreenshotWindow {
 
       Intent shareActivityIntent = new Intent(context, InvisibleShareActivity.class);
       shareActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-      shareActivityIntent.putExtra(InvisibleShareActivity.SCREENSHOT_PATH_KEY, screenshotPath);
+      shareActivityIntent.putExtra(InvisibleShareActivity.EXTRA_SCREENSHOT_PATH, screenshotPath);
 
       context.startActivity(shareActivityIntent);
       close();
@@ -151,7 +154,7 @@ public class ScreenshotWindow {
       public void afterTextChanged(Editable editable) {
         String text = editable.toString();
 
-        saveButton.setEnabled(text.length() > 0 && text.trim().equals(text));
+        saveButton.setEnabled(text.length() > 0);
       }
     });
 
