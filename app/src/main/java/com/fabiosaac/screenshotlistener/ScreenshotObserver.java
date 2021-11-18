@@ -12,8 +12,15 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Handler;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ScreenshotObserver extends ContentObserver {
   private static int NOTIFICATION_ID = 102;
@@ -33,7 +40,10 @@ public class ScreenshotObserver extends ContentObserver {
       if (
         path.toLowerCase().contains("screenshot")
           && !path.contains(context.getString(R.string.app_name_abbreviation))
+          && new File(path).exists()
       ) {
+        Log.d("PATH", path);
+
         Bitmap bitmap = BitmapFactory.decodeFile(path);
 
         Intent notificationIntent = new Intent(context, ScreenshotObserverService.class);
@@ -102,11 +112,14 @@ public class ScreenshotObserver extends ContentObserver {
   }
 
   private Notification.Action getSaveAction(String path) {
+    List<String> recentAlbums = AlbumsProvider.getRecentAlbums(context);
+    CharSequence[] choices = recentAlbums.toArray(new CharSequence[recentAlbums.size()]);
+
     RemoteInput remoteInputForSaveAction = new RemoteInput.Builder(
       BroadcastActionReceiver.EXTRA_ALBUM_NAME
     )
       .setLabel("Save in / Create album...")
-      .setChoices(new CharSequence[] {"Fotoz", "Picturez"})
+      .setChoices(choices)
       .build();
 
     Intent saveIntent = new Intent(context, BroadcastActionReceiver.class);

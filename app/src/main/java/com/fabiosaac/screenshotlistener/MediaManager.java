@@ -1,6 +1,5 @@
 package com.fabiosaac.screenshotlistener;
 
-import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -16,33 +15,9 @@ import android.provider.MediaStore;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
 
 public class MediaManager {
-
-  @SuppressLint("InlinedApi")
-  public static ArrayList<String> getAlbumList(Context context) {
-    String[] projection = new String[]{MediaStore.MediaColumns.BUCKET_DISPLAY_NAME};
-
-    Cursor cursor = context.getContentResolver()
-      .query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null,
-        null, null);
-
-    HashSet<String> albumsHashSet = new HashSet<>();
-
-    while (cursor.moveToNext()) {
-      albumsHashSet.add(cursor.getString(
-        (cursor.getColumnIndex(MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME))
-      ));
-    }
-
-    cursor.close();
-
-    return new ArrayList<>(albumsHashSet);
-  }
-
-  public static void refreshFileInGallery(Context context, File file) {
+    public static void refreshFileInGallery(Context context, File file) {
     MediaScannerConnection.scanFile(
       context.getApplicationContext(),
       new String[]{file.toString()},
@@ -51,12 +26,12 @@ public class MediaManager {
     );
   }
 
-  public static boolean deleteImage(Context context, File file) throws Exception {
+  public static void deleteImage(Context context, File file) throws Exception {
     if (file.exists()) {
       if (file.delete()) {
         refreshFileInGallery(context, file);
 
-        return true;
+        return;
       }
     }
 
@@ -86,7 +61,7 @@ public class MediaManager {
     String newFileName = context.getString(R.string.app_name_abbreviation) + System.currentTimeMillis() + ".jpg";
     OutputStream fos;
 
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q){
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
       File outputDirectory = new File(outputDirectoryPath);
 
       if (!outputDirectory.exists()) {

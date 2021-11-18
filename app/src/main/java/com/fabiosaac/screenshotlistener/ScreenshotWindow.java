@@ -154,7 +154,7 @@ public class ScreenshotWindow {
       public void afterTextChanged(Editable editable) {
         String text = editable.toString();
 
-        saveButton.setEnabled(text.length() > 0);
+        saveButton.setEnabled(text.length() > 0 && text.trim().equals(text));
       }
     });
 
@@ -189,6 +189,8 @@ public class ScreenshotWindow {
       MediaManager.deleteImage(context, new File(screenshotPath));
 
       Toast.makeText(context, "Screenshot saved successfully", Toast.LENGTH_SHORT).show();
+
+      AlbumsProvider.updateSharedPreferencesWithUsedAlbum(context, albumName);
     } catch (Exception exception) {
       exception.printStackTrace();
 

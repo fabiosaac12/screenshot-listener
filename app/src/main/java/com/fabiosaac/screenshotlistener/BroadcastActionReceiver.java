@@ -51,12 +51,18 @@ public class BroadcastActionReceiver extends BroadcastReceiver {
     if (remoteInputForAlbumName != null && screenshotPath != null) {
       String albumName = String.valueOf(remoteInputForAlbumName.getCharSequence(EXTRA_ALBUM_NAME));
 
+      if (albumName.length() > 1) {
+        albumName = albumName.trim();
+      }
+
       try {
         MediaManager
           .saveImageInAlbum(context, new File(screenshotPath), albumName);
         MediaManager.deleteImage(context, new File(screenshotPath));
 
         Toast.makeText(context, "Screenshot saved successfully", Toast.LENGTH_SHORT).show();
+
+        AlbumsProvider.updateSharedPreferencesWithUsedAlbum(context, albumName);
       } catch (Exception exception) {
         exception.printStackTrace();
 

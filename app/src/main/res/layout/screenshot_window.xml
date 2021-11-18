@@ -98,8 +98,8 @@
                                         android:layout_height="wrap_content"
                                         android:adjustViewBounds="true"
                                         android:contentDescription="Screenshot"
-                                        android:maxHeight="350dp"
-                                        tools:srcCompat="@tools:sample/backgrounds/scenic" />
+                                        android:maxHeight="300dp"
+                                        tools:src="@tools:sample/avatars" />
 
                                 </com.google.android.material.card.MaterialCardView>
 

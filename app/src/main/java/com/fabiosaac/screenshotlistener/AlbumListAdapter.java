@@ -31,7 +31,7 @@ public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.Albu
     this.context = context;
     this.albumListItemOnClickListener = albumListItemOnClickListener;
 
-    albums = MediaManager.getAlbumList(context);
+    albums = AlbumsProvider.getAlbumList(context);
   }
 
   @NonNull

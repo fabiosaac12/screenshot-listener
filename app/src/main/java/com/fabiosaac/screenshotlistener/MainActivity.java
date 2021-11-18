@@ -1,17 +1,13 @@
 package com.fabiosaac.screenshotlistener;
 
-import android.app.Notification;
+import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
   public static final String NOTIFICATION_SCREENSHOT_OBSERVER_SERVICE_CHANNEL_ID =
     "screenshot_observer_service_notification_channel_id";
   public static final String NOTIFICATION_NEW_SCREENSHOT_CHANNEL_ID =
