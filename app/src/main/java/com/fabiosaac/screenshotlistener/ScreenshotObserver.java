@@ -42,8 +42,6 @@ public class ScreenshotObserver extends ContentObserver {
           && !path.contains(context.getString(R.string.app_name_abbreviation))
           && new File(path).exists()
       ) {
-        Log.d("PATH", path);
-
         Bitmap bitmap = BitmapFactory.decodeFile(path);
 
         Intent notificationIntent = new Intent(context, ScreenshotObserverService.class);
@@ -81,7 +79,7 @@ public class ScreenshotObserver extends ContentObserver {
 
   private Notification.Action getShareAction(String path) {
     Intent shareIntent = new Intent(context, BroadcastActionReceiver.class);
-    shareIntent.setAction(BroadcastActionReceiver.ACTION_NOTIFICATION_SHARE);
+    shareIntent.setAction(BroadcastActionReceiver.ACTION_SHARE);
     shareIntent.putExtra(BroadcastActionReceiver.EXTRA_SCREENSHOT_PATH, path);
     shareIntent.putExtra(BroadcastActionReceiver.EXTRA_NOTIFICATION_ID, NOTIFICATION_ID);
 
@@ -97,7 +95,7 @@ public class ScreenshotObserver extends ContentObserver {
 
   private Notification.Action getDeleteAction(String path) {
     Intent deleteIntent = new Intent(context, BroadcastActionReceiver.class);
-    deleteIntent.setAction(BroadcastActionReceiver.ACTION_NOTIFICATION_DELETE);
+    deleteIntent.setAction(BroadcastActionReceiver.ACTION_DELETE);
     deleteIntent.putExtra(BroadcastActionReceiver.EXTRA_SCREENSHOT_PATH, path);
     deleteIntent.putExtra(BroadcastActionReceiver.EXTRA_NOTIFICATION_ID, NOTIFICATION_ID);
 
@@ -123,7 +121,7 @@ public class ScreenshotObserver extends ContentObserver {
       .build();
 
     Intent saveIntent = new Intent(context, BroadcastActionReceiver.class);
-    saveIntent.setAction(BroadcastActionReceiver.ACTION_NOTIFICATION_SAVE);
+    saveIntent.setAction(BroadcastActionReceiver.ACTION_SAVE);
     saveIntent.putExtra(BroadcastActionReceiver.EXTRA_SCREENSHOT_PATH, path);
     saveIntent.putExtra(BroadcastActionReceiver.EXTRA_NOTIFICATION_ID, NOTIFICATION_ID);
 

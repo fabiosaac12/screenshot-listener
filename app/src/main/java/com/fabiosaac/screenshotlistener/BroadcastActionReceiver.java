@@ -12,11 +12,9 @@ import android.widget.Toast;
 import java.io.File;
 
 public class BroadcastActionReceiver extends BroadcastReceiver {
-  public static final String ACTION_NOTIFICATION_SHARE = "com.fabiosaac.action.NOTIFICATION_SHARE";
-  public static final String ACTION_NOTIFICATION_DELETE =
-    "com.fabiosaac.action.NOTIFICATION_DELETE";
-  public static final String ACTION_NOTIFICATION_SAVE =
-    "com.fabiosaac.action.NOTIFICATION_SAVE";
+  public static final String ACTION_SHARE = "com.fabiosaac.action.SHARE";
+  public static final String ACTION_DELETE = "com.fabiosaac.action.DELETE";
+  public static final String ACTION_SAVE = "com.fabiosaac.action.SAVE";
 
   public static final String EXTRA_NOTIFICATION_ID = "EXTRA_NOTIFICATION_ID";
   public static final String EXTRA_SCREENSHOT_PATH = "EXTRA_SCREENSHOT_PATH";
@@ -28,13 +26,13 @@ public class BroadcastActionReceiver extends BroadcastReceiver {
       case Intent.ACTION_BOOT_COMPLETED:
         startScreenshotObserverService(context);
         break;
-      case ACTION_NOTIFICATION_SHARE:
+      case ACTION_SHARE:
         shareScreenshot(context, intent);
         break;
-      case ACTION_NOTIFICATION_DELETE:
+      case ACTION_DELETE:
         deleteScreenshot(context, intent);
         break;
-      case ACTION_NOTIFICATION_SAVE:
+      case ACTION_SAVE:
         saveScreenshot(context, intent);
         break;
       default:

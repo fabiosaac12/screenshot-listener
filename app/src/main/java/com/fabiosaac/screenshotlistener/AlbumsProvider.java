@@ -18,9 +18,9 @@ import java.util.List;
 import java.util.Map;
 
 public class AlbumsProvider {
-  private static final String PREFERENCES_FILE = "com.fabiosaac.screenshotlistener.PREFERENCES_FILE";
-  private static final String PREFERENCE_KEY_RECENT_ALBUMS = "PREFERENCE_KEY_RECENT_ALBUMS";
-  private static final String PREFERENCE_KEY_ALBUMS_USAGE = "PREFERENCE_KEY_ALBUMS_USAGE";
+  private static final String PREF_FILE = "com.fabiosaac.screenshotlistener.PREF_FILE";
+  private static final String PREF_RECENT_ALBUMS = "PREF_RECENT_ALBUMS";
+  private static final String PREF_ALBUMS_USAGE = "PREF_ALBUMS_USAGE";
 
   public static synchronized void updateSharedPreferencesForRecentAlbums(
     Context context,
@@ -29,8 +29,6 @@ public class AlbumsProvider {
     String album
   ) {
     ArrayList<String> recentAlbums = getRecentAlbums(context);
-    Log.d("   RECENT ALBUMS", recentAlbums.toString());
-
     ArrayList<String> newRecentAlbums = new ArrayList<>();
 
     newRecentAlbums.add(album);
@@ -47,10 +45,8 @@ public class AlbumsProvider {
       }
     }
 
-    Log.d("   NEW RECENT ALBUMS", newRecentAlbums.toString());
-
-    editor.remove(PREFERENCE_KEY_RECENT_ALBUMS);
-    editor.putString(PREFERENCE_KEY_RECENT_ALBUMS, gson.toJson(newRecentAlbums));
+    editor.remove(PREF_RECENT_ALBUMS);
+    editor.putString(PREF_RECENT_ALBUMS, gson.toJson(newRecentAlbums));
   }
 
   public static synchronized void updateSharedPreferencesForMostUsedAlbums(
@@ -65,15 +61,15 @@ public class AlbumsProvider {
 
     albumsUsage.put(album, currentValue == null ? 1 : currentValue + 1);
 
-    editor.remove(PREFERENCE_KEY_ALBUMS_USAGE);
-    editor.putString(PREFERENCE_KEY_ALBUMS_USAGE, gson.toJson(albumsUsage));
+    editor.remove(PREF_ALBUMS_USAGE);
+    editor.putString(PREF_ALBUMS_USAGE, gson.toJson(albumsUsage));
   }
 
   public static synchronized void updateSharedPreferencesWithUsedAlbum(Context context, String album) {
     Gson gson = new Gson();
 
     SharedPreferences sharedPreferences =
-      context.getApplicationContext().getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE);
+      context.getApplicationContext().getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
 
     SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
 
@@ -81,20 +77,16 @@ public class AlbumsProvider {
     updateSharedPreferencesForMostUsedAlbums(context, sharedPreferencesEditor, gson, album);
 
     sharedPreferencesEditor.apply();
-
-    Log.d("   NEW RECENT ALBUMS AFTER SAVING", getRecentAlbums(context).toString());
-
-    Log.d("    UPDATED", "???");
   }
 
   public static ArrayList<String> getRecentAlbums(Context context) {
     Gson gson = new Gson();
 
     SharedPreferences sharedPreferences =
-      context.getApplicationContext().getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE);
+      context.getApplicationContext().getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
 
     String recentAlbumsString =
-      sharedPreferences.getString(PREFERENCE_KEY_RECENT_ALBUMS, null);
+      sharedPreferences.getString(PREF_RECENT_ALBUMS, null);
 
     if (recentAlbumsString == null) {
       return new ArrayList<>();
@@ -110,10 +102,10 @@ public class AlbumsProvider {
     Gson gson = new Gson();
 
     SharedPreferences sharedPreferences =
-      context.getApplicationContext().getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE);
+      context.getApplicationContext().getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE);
 
     String albumsUsageString =
-      sharedPreferences.getString(PREFERENCE_KEY_ALBUMS_USAGE, null);
+      sharedPreferences.getString(PREF_ALBUMS_USAGE, null);
 
     if (albumsUsageString == null) {
       return new HashMap<>();

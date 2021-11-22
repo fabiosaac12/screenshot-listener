@@ -7,7 +7,9 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 
-public class MainActivity extends Activity {
+import androidx.fragment.app.FragmentActivity;
+
+public class MainActivity extends FragmentActivity {
   public static final String NOTIFICATION_SCREENSHOT_OBSERVER_SERVICE_CHANNEL_ID =
     "screenshot_observer_service_notification_channel_id";
   public static final String NOTIFICATION_NEW_SCREENSHOT_CHANNEL_ID =

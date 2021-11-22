@@ -15,7 +15,7 @@ import com.google.android.material.button.MaterialButton;
 import java.util.ArrayList;
 
 interface AlbumListItemOnClickListener {
-  public abstract void handleSaveImage(String albumName);
+  void handleSaveImage(String albumName);
 }
 
 public class AlbumListAdapter extends RecyclerView.Adapter<AlbumListAdapter.AlbumItemHolder> {

@@ -1,4 +1,6 @@
 <resources>
-    <string name="app_name">ScreenshotListener</string>
+    <string name="app_name">Screenshot Listener</string>
     <string name="app_name_abbreviation">sslistener</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
