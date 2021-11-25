@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -15,6 +16,7 @@ public class BroadcastActionReceiver extends BroadcastReceiver {
   public static final String ACTION_SHARE = "com.fabiosaac.action.SHARE";
   public static final String ACTION_DELETE = "com.fabiosaac.action.DELETE";
   public static final String ACTION_SAVE = "com.fabiosaac.action.SAVE";
+  public static final String ACTION_START_SERVICE = "com.fabiosaac.action.START_SERVICE";
 
   public static final String EXTRA_NOTIFICATION_ID = "EXTRA_NOTIFICATION_ID";
   public static final String EXTRA_SCREENSHOT_PATH = "EXTRA_SCREENSHOT_PATH";
@@ -23,6 +25,7 @@ public class BroadcastActionReceiver extends BroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
     switch (intent.getAction()) {
+      case ACTION_START_SERVICE:
       case Intent.ACTION_BOOT_COMPLETED:
         startScreenshotObserverService(context);
         break;
@@ -56,7 +59,10 @@ public class BroadcastActionReceiver extends BroadcastReceiver {
       try {
         MediaManager
           .saveImageInAlbum(context, new File(screenshotPath), albumName);
-        MediaManager.deleteImage(context, new File(screenshotPath));
+
+        if (SettingsProvider.getInstance(context).getDeleteOnSave()) {
+          MediaManager.deleteImage(context, new File(screenshotPath));
+        }
 
         Toast.makeText(context, "Screenshot saved successfully", Toast.LENGTH_SHORT).show();
 

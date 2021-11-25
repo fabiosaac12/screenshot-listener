@@ -1,18 +1,17 @@
 package com.fabiosaac.screenshotlistener;
 
-import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.FragmentActivity;
 
 public class MainActivity extends FragmentActivity {
-  public static final String NOTIFICATION_SCREENSHOT_OBSERVER_SERVICE_CHANNEL_ID =
+  public static final String CHANNEL_SCREENSHOT_OBSERVER_SERVICE =
     "screenshot_observer_service_notification_channel_id";
-  public static final String NOTIFICATION_NEW_SCREENSHOT_CHANNEL_ID =
+  public static final String CHANNEL_NEW_SCREENSHOT =
     "new_screenshot_notification_channel_id";
 
   @Override
@@ -22,18 +21,37 @@ public class MainActivity extends FragmentActivity {
 
     createNotificationChannels();
 
-    startScreenshotObserverService();
+    initializeServiceSwitch();
+
+    ScreenshotObserverService.handleStart(this, null);
   }
 
-  private void startScreenshotObserverService() {
-    Intent screenshotObserverService = new Intent(getBaseContext(),
-      ScreenshotObserverService.class);
+  private void initializeServiceSwitch() {
+    SwitchCompat serviceSwitch = findViewById(R.id.serviceSwitch);
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      getBaseContext().startForegroundService(screenshotObserverService);
-    } else {
-      getBaseContext().startService(screenshotObserverService);
-    }
+    serviceSwitch.setChecked(SettingsProvider.getInstance(this).getServiceEnabled());
+
+    serviceSwitch.setOnCheckedChangeListener(
+      (view, value) -> SettingsProvider.getInstance(this).setServiceEnabled(value));
+  }
+
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+
+    this.stopService(new Intent(this, ScreenshotObserverService.class));
+  }
+
+  @Override
+  protected void onPause() {
+    Intent intent = new Intent();
+    intent.setClassName(this.getPackageName(), BroadcastActionReceiver.class.getName());
+    intent.setAction(BroadcastActionReceiver.ACTION_START_SERVICE);
+
+    sendBroadcast(intent);
+
+    super.onPause();
   }
 
   private void createNotificationChannels() {
@@ -41,23 +59,20 @@ public class MainActivity extends FragmentActivity {
       NotificationManager notificationManager = this.getSystemService(NotificationManager.class);
 
       // SCREENSHOT OBSERVER SERVICE NOTIFICATION CHANNEL
-      String screenshotObserverServiceChannelId =
-        "screenshot_observer_service_notification_channel_id";
       String screenshotObserverServiceChannelName = "Screenshot Observer Service";
 
       NotificationChannel screenshotObserverServiceChannel = new NotificationChannel(
-        screenshotObserverServiceChannelId, screenshotObserverServiceChannelName,
+        CHANNEL_SCREENSHOT_OBSERVER_SERVICE, screenshotObserverServiceChannelName,
         NotificationManager.IMPORTANCE_MIN);
 
       screenshotObserverServiceChannel.setSound(null, null);
       screenshotObserverServiceChannel.setVibrationPattern(null);
 
       // NEW SCREENSHOT NOTIFICATION CHANNEL
-      String newScreenshotChannelId = "new_screenshot_notification_channel_id";
       String newScreenshotChannelName = "New Screenshot";
 
       NotificationChannel newScreenshotChannel = new NotificationChannel(
-        newScreenshotChannelId, newScreenshotChannelName, NotificationManager.IMPORTANCE_DEFAULT);
+        CHANNEL_NEW_SCREENSHOT, newScreenshotChannelName, NotificationManager.IMPORTANCE_DEFAULT);
 
       newScreenshotChannel.setSound(null, null);
       newScreenshotChannel.setVibrationPattern(null);

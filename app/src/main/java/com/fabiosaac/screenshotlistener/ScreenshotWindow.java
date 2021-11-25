@@ -186,7 +186,10 @@ public class ScreenshotWindow {
     try {
       MediaManager
         .saveImageInAlbum(context, new File(screenshotPath), albumName);
-      MediaManager.deleteImage(context, new File(screenshotPath));
+
+      if (SettingsProvider.getInstance(context).getDeleteOnSave()) {
+        MediaManager.deleteImage(context, new File(screenshotPath));
+      }
 
       Toast.makeText(context, "Screenshot saved successfully", Toast.LENGTH_SHORT).show();
 

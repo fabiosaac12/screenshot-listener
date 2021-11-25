@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 public class AlbumsProvider {
-  private static final String PREF_FILE = "com.fabiosaac.screenshotlistener.PREF_FILE";
+  private static final String PREF_FILE = "com.fabiosaac.screenshotlistener.PREF_ALBUMS_FILE";
   private static final String PREF_RECENT_ALBUMS = "PREF_RECENT_ALBUMS";
   private static final String PREF_ALBUMS_USAGE = "PREF_ALBUMS_USAGE";
 
@@ -76,7 +76,7 @@ public class AlbumsProvider {
     updateSharedPreferencesForRecentAlbums(context, sharedPreferencesEditor, gson, album);
     updateSharedPreferencesForMostUsedAlbums(context, sharedPreferencesEditor, gson, album);
 
-    sharedPreferencesEditor.apply();
+    sharedPreferencesEditor.commit();
   }
 
   public static ArrayList<String> getRecentAlbums(Context context) {

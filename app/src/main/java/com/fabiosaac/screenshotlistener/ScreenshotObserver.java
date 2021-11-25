@@ -14,12 +14,9 @@ import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ScreenshotObserver extends ContentObserver {
@@ -42,35 +39,41 @@ public class ScreenshotObserver extends ContentObserver {
           && !path.contains(context.getString(R.string.app_name_abbreviation))
           && new File(path).exists()
       ) {
-        Bitmap bitmap = BitmapFactory.decodeFile(path);
+        if (SettingsProvider.getInstance(context).getNotificationDisabled()) {
+          ScreenshotObserverService.handleStart(context, path);
+        } else {
+          Bitmap bitmap = BitmapFactory.decodeFile(path);
 
-        Intent notificationIntent = new Intent(context, ScreenshotObserverService.class);
-        notificationIntent.putExtra(ScreenshotObserverService.EXTRA_SCREENSHOT_PATH, path);
+          Intent notificationIntent = new Intent(context, ScreenshotObserverService.class);
+          notificationIntent.putExtra(ScreenshotObserverService.EXTRA_SCREENSHOT_PATH, path);
 
-        PendingIntent notificationPendingIntent = PendingIntent.getService(context, NOTIFICATION_ID,
-          notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+          PendingIntent notificationPendingIntent = PendingIntent.getService(context, NOTIFICATION_ID,
+            notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        Notification.Builder builder = new Notification.Builder(context,
-          MainActivity.NOTIFICATION_NEW_SCREENSHOT_CHANNEL_ID)
-          .setSmallIcon(R.mipmap.ic_launcher)
-          .setContentTitle("New Screenshot")
-          .setContentText("Remember to have your gallery organized!")
-          .setContentIntent(notificationPendingIntent)
-          .setLargeIcon(bitmap)
-          .setAutoCancel(true)
-          .setStyle(new Notification.BigPictureStyle()
-            .bigPicture(bitmap)
-            .bigLargeIcon((Bitmap) null))
-          .addAction(getShareAction(path))
-          .addAction(getDeleteAction(path))
-          .addAction(getSaveAction(path));
+          Notification.Builder builder = new Notification.Builder(context,
+            MainActivity.CHANNEL_NEW_SCREENSHOT)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle("New Screenshot")
+            .setContentText("Remember to have your gallery organized!")
+            .setContentIntent(notificationPendingIntent)
+            .setLargeIcon(bitmap)
+            .setAutoCancel(true)
+            .setStyle(new Notification.BigPictureStyle()
+              .bigPicture(bitmap)
+              .bigLargeIcon((Bitmap) null))
+            .addAction(getShareAction(path))
+            .addAction(getDeleteAction(path))
+            .addAction(getSaveAction(path));
 
-        NotificationManager notificationManager =
-          context.getSystemService(NotificationManager.class);
+          NotificationManager notificationManager =
+            context.getSystemService(NotificationManager.class);
 
-        notificationManager.notify(NOTIFICATION_ID, builder.build());
+          notificationManager.notify(NOTIFICATION_ID, builder.build());
 
-        NOTIFICATION_ID++;
+          if (SettingsProvider.getInstance(context).getAccumulateNotifications()) {
+            NOTIFICATION_ID++;
+          }
+        }
       }
     }
 
@@ -90,7 +93,7 @@ public class ScreenshotObserver extends ContentObserver {
       Icon.createWithResource(context, R.drawable.ic_share), "Share",
       sharePendingIntent).build();
 
-    return  shareAction;
+    return shareAction;
   }
 
   private Notification.Action getDeleteAction(String path) {
@@ -110,8 +113,11 @@ public class ScreenshotObserver extends ContentObserver {
   }
 
   private Notification.Action getSaveAction(String path) {
-    List<String> recentAlbums = AlbumsProvider.getRecentAlbums(context);
-    CharSequence[] choices = recentAlbums.toArray(new CharSequence[recentAlbums.size()]);
+    List<String> albums =
+      SettingsProvider.getInstance(context).getNotificationAlbums().equals("mostUsed")
+        ? AlbumsProvider.getMostUsedAlbums(context.getApplicationContext()) : AlbumsProvider.getRecentAlbums(context.getApplicationContext());
+
+    CharSequence[] choices = albums.toArray(new CharSequence[albums.size()]);
 
     RemoteInput remoteInputForSaveAction = new RemoteInput.Builder(
       BroadcastActionReceiver.EXTRA_ALBUM_NAME

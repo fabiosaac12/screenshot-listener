@@ -58,16 +58,18 @@ public class InvisibleShareActivity extends Activity {
 
         startActivity(chooser);
 
-        try {
-          MediaManager.deleteImage(this, screenshotFile);
+        if (SettingsProvider.getInstance(this).getDeleteOnShare()) {
+          try {
+            MediaManager.deleteImage(this, screenshotFile);
 
-          Toast.makeText(this, "Screenshot deleted successfully", Toast.LENGTH_SHORT)
-            .show();
-        } catch (Exception exception) {
-          exception.printStackTrace();
+            Toast.makeText(this, "Screenshot deleted successfully", Toast.LENGTH_SHORT)
+              .show();
+          } catch (Exception exception) {
+            exception.printStackTrace();
 
-          Toast.makeText(this, "Unable to delete the screenshot", Toast.LENGTH_SHORT)
-            .show();
+            Toast.makeText(this, "Unable to delete the screenshot", Toast.LENGTH_SHORT)
+              .show();
+          }
         }
       }
     }
