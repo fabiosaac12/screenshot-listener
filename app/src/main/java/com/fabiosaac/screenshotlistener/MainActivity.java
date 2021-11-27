@@ -3,6 +3,8 @@ package com.fabiosaac.screenshotlistener;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.os.Bundle;
+import android.view.Window;
+import android.view.WindowManager;
 
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -25,6 +27,10 @@ public class MainActivity extends FragmentActivity {
     if (SettingsProvider.getInstance(this).getServiceEnabled()) {
       ScreenshotObserverService.handleStart(this, null);
     }
+
+    Window window = getWindow();
+    window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+      WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
   }
 
   private void initializeServiceSwitch() {
