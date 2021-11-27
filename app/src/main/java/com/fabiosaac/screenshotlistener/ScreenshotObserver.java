@@ -11,7 +11,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -47,10 +49,10 @@ public class ScreenshotObserver extends ContentObserver {
           Intent notificationIntent = new Intent(context, ScreenshotObserverService.class);
           notificationIntent.putExtra(ScreenshotObserverService.EXTRA_SCREENSHOT_PATH, path);
 
-          PendingIntent notificationPendingIntent = PendingIntent.getService(context, NOTIFICATION_ID,
-            notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+          PendingIntent notificationPendingIntent = PendingIntent.getService(context,
+            NOTIFICATION_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-          Notification.Builder builder = new Notification.Builder(context,
+          Notification.Builder notificationBuilder = new Notification.Builder(context,
             MainActivity.CHANNEL_NEW_SCREENSHOT)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("New Screenshot")
@@ -65,13 +67,30 @@ public class ScreenshotObserver extends ContentObserver {
             .addAction(getDeleteAction(path))
             .addAction(getSaveAction(path));
 
+          Bundle notificationExtras = new Bundle();
+          notificationExtras.putString(ScreenshotObserverService.EXTRA_SCREENSHOT_PATH, path);
+          notificationBuilder.addExtras(notificationExtras);
+
           NotificationManager notificationManager =
             context.getSystemService(NotificationManager.class);
 
           int notificationId = SettingsProvider.getInstance(context).getAccumulateNotifications()
             ? NOTIFICATION_ID++ : NOTIFICATION_ID;
 
-          notificationManager.notify(notificationId, builder.build());
+          notificationManager.notify(notificationId, notificationBuilder.build());
+
+          StatusBarNotification[] activeNotifications = notificationManager.getActiveNotifications();
+
+          for (StatusBarNotification notification : activeNotifications) {
+            String imagePath = notification.getNotification()
+              .extras.getString(ScreenshotObserverService.EXTRA_SCREENSHOT_PATH);
+
+            if (imagePath != null) {
+              if (!(new File(imagePath).exists())) {
+                notificationManager.cancel(notification.getId());
+              }
+            }
+          }
         }
       }
     }

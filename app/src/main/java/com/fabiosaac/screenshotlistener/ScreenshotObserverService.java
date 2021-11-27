@@ -12,7 +12,6 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Process;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 
