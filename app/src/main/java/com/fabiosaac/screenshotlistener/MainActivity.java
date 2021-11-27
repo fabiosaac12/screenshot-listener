@@ -2,7 +2,6 @@ package com.fabiosaac.screenshotlistener;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.widget.SwitchCompat;
@@ -23,7 +22,9 @@ public class MainActivity extends FragmentActivity {
 
     initializeServiceSwitch();
 
-    ScreenshotObserverService.handleStart(this, null);
+    if (SettingsProvider.getInstance(this).getServiceEnabled()) {
+      ScreenshotObserverService.handleStart(this, null);
+    }
   }
 
   private void initializeServiceSwitch() {
@@ -32,26 +33,15 @@ public class MainActivity extends FragmentActivity {
     serviceSwitch.setChecked(SettingsProvider.getInstance(this).getServiceEnabled());
 
     serviceSwitch.setOnCheckedChangeListener(
-      (view, value) -> SettingsProvider.getInstance(this).setServiceEnabled(value));
-  }
+      (view, value) -> {
+        SettingsProvider.getInstance(this).setServiceEnabled(value);
 
-
-  @Override
-  protected void onStart() {
-    super.onStart();
-
-    this.stopService(new Intent(this, ScreenshotObserverService.class));
-  }
-
-  @Override
-  protected void onPause() {
-    Intent intent = new Intent();
-    intent.setClassName(this.getPackageName(), BroadcastActionReceiver.class.getName());
-    intent.setAction(BroadcastActionReceiver.ACTION_START_SERVICE);
-
-    sendBroadcast(intent);
-
-    super.onPause();
+        if (value) {
+          ScreenshotObserverService.handleStart(this, null);
+        } else {
+          ScreenshotObserverService.handleStop(this);
+        }
+      });
   }
 
   private void createNotificationChannels() {

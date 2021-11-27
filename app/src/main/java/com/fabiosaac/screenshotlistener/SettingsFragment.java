@@ -6,9 +6,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
 public class SettingsFragment extends Fragment {
   private SettingsProvider settingsProvider;
@@ -19,11 +21,13 @@ public class SettingsFragment extends Fragment {
   private SwitchCompat deleteOnSaveSwitch;
   private SwitchCompat accumulateNotificationsSwitch;
   private RadioGroup notificationAlbumsRadioGroup;
+  private FragmentActivity context;
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
-    this.settingsProvider = SettingsProvider.getInstance(this.getContext());
+    this.context = getActivity();
+    this.settingsProvider = SettingsProvider.getInstance(this.context);
     this.container = inflater.inflate(R.layout.fragment_settings, container, false);
 
     initializeViews();
@@ -50,7 +54,7 @@ public class SettingsFragment extends Fragment {
     this.deleteOnShareSwitch.setChecked(settingsProvider.getDeleteOnShare());
     this.accumulateNotificationsSwitch.setChecked(settingsProvider.getAccumulateNotifications());
 
-    if (SettingsProvider.getInstance(getContext()).getNotificationAlbums().equals("mostUsed")) {
+    if (SettingsProvider.getInstance(context).getNotificationAlbums().equals("mostUsed")) {
       ((RadioButton) this.notificationAlbumsRadioGroup.findViewById(R.id.mostUsedRadio))
         .setChecked(true);
     } else {
@@ -61,18 +65,47 @@ public class SettingsFragment extends Fragment {
 
   private void setViewListeners() {
     this.notificationSwitch.setOnCheckedChangeListener(
-      (view, value) -> settingsProvider.setNotificationDisabled(value));
+      (view, value) -> {
+        settingsProvider.setNotificationDisabled(value);
+        stopService();
+      });
 
     this.deleteOnSaveSwitch.setOnCheckedChangeListener(
-      (view, value) -> settingsProvider.setDeleteOnSave(value));
+      (view, value) -> {
+        settingsProvider.setDeleteOnSave(value);
+        stopService();
+      });
 
     this.deleteOnShareSwitch.setOnCheckedChangeListener(
-      (view, value) -> settingsProvider.setDeleteOnShare(value));
+      (view, value) -> {
+        settingsProvider.setDeleteOnShare(value);
+        stopService();
+      });
 
     this.accumulateNotificationsSwitch.setOnCheckedChangeListener(
-      (view, value) -> settingsProvider.setAccumulateNotifications(value));
+      (view, value) -> {
+        settingsProvider.setAccumulateNotifications(value);
+        stopService();
+      });
 
-    this.notificationAlbumsRadioGroup.setOnCheckedChangeListener((radioGroup, id) ->
-      settingsProvider.setNotificationAlbums(id == R.id.mostUsedRadio ? "mostUsed" : "recent"));
+    this.notificationAlbumsRadioGroup.setOnCheckedChangeListener((radioGroup, id) -> {
+      settingsProvider.setNotificationAlbums(id == R.id.mostUsedRadio ? "mostUsed" : "recent");
+      stopService();
+    });
+  }
+
+  private void stopService() {
+    SwitchCompat serviceSwitch = context.findViewById(R.id.serviceSwitch);
+
+    if (serviceSwitch.isChecked()) {
+      ScreenshotObserverService.handleStop(context);
+
+      serviceSwitch.setChecked(false);
+
+      Toast.makeText(context, "The service has been stopped in order to apply the settings.",
+        Toast.LENGTH_LONG).show();
+      Toast.makeText(context, "Be sure to enable the service after finishing configuring.",
+        Toast.LENGTH_LONG).show();
+    }
   }
 }

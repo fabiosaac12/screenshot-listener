@@ -99,6 +99,10 @@ public class ScreenshotObserverService extends Service {
     }
   }
 
+  public static void handleStop(Context context) {
+    context.stopService(new Intent(context, ScreenshotObserverService.class));
+  }
+
   @Nullable
   @Override
   public IBinder onBind(Intent intent) {

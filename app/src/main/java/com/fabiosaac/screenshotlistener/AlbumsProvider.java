@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.provider.MediaStore;
-import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -76,7 +75,7 @@ public class AlbumsProvider {
     updateSharedPreferencesForRecentAlbums(context, sharedPreferencesEditor, gson, album);
     updateSharedPreferencesForMostUsedAlbums(context, sharedPreferencesEditor, gson, album);
 
-    sharedPreferencesEditor.commit();
+    sharedPreferencesEditor.apply();
   }
 
   public static ArrayList<String> getRecentAlbums(Context context) {
