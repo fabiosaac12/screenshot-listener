@@ -1,6 +1,7 @@
 package com.fabiosaac.screenshotlistener;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -80,6 +81,11 @@ public class ScreenshotObserverService extends Service {
     }
 
     screenshotObserver = null;
+
+    NotificationManager notificationManager =
+      this.getSystemService(NotificationManager.class);
+
+    notificationManager.cancelAll();
 
     Process.killProcess(Process.myPid());
   }

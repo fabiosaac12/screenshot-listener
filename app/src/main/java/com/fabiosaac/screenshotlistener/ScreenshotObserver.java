@@ -68,11 +68,10 @@ public class ScreenshotObserver extends ContentObserver {
           NotificationManager notificationManager =
             context.getSystemService(NotificationManager.class);
 
-          notificationManager.notify(NOTIFICATION_ID, builder.build());
+          int notificationId = SettingsProvider.getInstance(context).getAccumulateNotifications()
+            ? NOTIFICATION_ID++ : NOTIFICATION_ID;
 
-          if (SettingsProvider.getInstance(context).getAccumulateNotifications()) {
-            NOTIFICATION_ID++;
-          }
+          notificationManager.notify(notificationId, builder.build());
         }
       }
     }
