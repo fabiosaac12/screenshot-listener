@@ -13,8 +13,8 @@ import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.service.notification.StatusBarNotification;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -35,11 +35,13 @@ public class ScreenshotObserver extends ContentObserver {
   public void onChange(boolean selfChange, @Nullable Uri uri) {
     if (uri != null) {
       String path = MediaManager.getPathFromUri(context, uri);
+      File file = new File(path);
 
       if (
         path.toLowerCase().contains("screenshot")
           && !path.contains(context.getString(R.string.app_name_abbreviation))
-          && new File(path).exists()
+          && file.exists()
+          && file.lastModified() >= System.currentTimeMillis() - 10000
       ) {
         if (SettingsProvider.getInstance(context).getNotificationDisabled()) {
           ScreenshotObserverService.handleStart(context, path);
@@ -79,18 +81,21 @@ public class ScreenshotObserver extends ContentObserver {
 
           notificationManager.notify(notificationId, notificationBuilder.build());
 
-          StatusBarNotification[] activeNotifications = notificationManager.getActiveNotifications();
+          new android.os.Handler(Looper.getMainLooper()).postDelayed(
+            () -> {
+              StatusBarNotification[] activeNotifications = notificationManager.getActiveNotifications();
 
-          for (StatusBarNotification notification : activeNotifications) {
-            String imagePath = notification.getNotification()
-              .extras.getString(ScreenshotObserverService.EXTRA_SCREENSHOT_PATH);
+              for (StatusBarNotification notification : activeNotifications) {
+                String imagePath = notification.getNotification()
+                  .extras.getString(ScreenshotObserverService.EXTRA_SCREENSHOT_PATH);
 
-            if (imagePath != null) {
-              if (!(new File(imagePath).exists())) {
-                notificationManager.cancel(notification.getId());
+                if (imagePath != null) {
+                  if (!(new File(imagePath).exists())) {
+                    notificationManager.cancel(notification.getId());
+                  }
+                }
               }
-            }
-          }
+            }, 1000);
         }
       }
     }
@@ -107,11 +112,9 @@ public class ScreenshotObserver extends ContentObserver {
     PendingIntent sharePendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_ID,
       shareIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-    Notification.Action shareAction = new Notification.Action.Builder(
+    return new Notification.Action.Builder(
       Icon.createWithResource(context, R.drawable.ic_share), "Share",
       sharePendingIntent).build();
-
-    return shareAction;
   }
 
   private Notification.Action getDeleteAction(String path) {
@@ -123,11 +126,9 @@ public class ScreenshotObserver extends ContentObserver {
     PendingIntent deletePendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_ID,
       deleteIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-    Notification.Action deleteAction = new Notification.Action.Builder(
+    return new Notification.Action.Builder(
       Icon.createWithResource(context, R.drawable.ic_delete), "Delete",
       deletePendingIntent).build();
-
-    return deleteAction;
   }
 
   private Notification.Action getSaveAction(String path) {
@@ -135,7 +136,7 @@ public class ScreenshotObserver extends ContentObserver {
       SettingsProvider.getInstance(context).getNotificationAlbums().equals("mostUsed")
         ? AlbumsProvider.getMostUsedAlbums(context.getApplicationContext()) : AlbumsProvider.getRecentAlbums(context.getApplicationContext());
 
-    CharSequence[] choices = albums.toArray(new CharSequence[albums.size()]);
+    CharSequence[] choices = albums.toArray(new CharSequence[0]);
 
     RemoteInput remoteInputForSaveAction = new RemoteInput.Builder(
       BroadcastActionReceiver.EXTRA_ALBUM_NAME
@@ -152,12 +153,10 @@ public class ScreenshotObserver extends ContentObserver {
     PendingIntent savePendingIntent = PendingIntent.getBroadcast(context, NOTIFICATION_ID,
       saveIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-    Notification.Action saveAction = new Notification.Action.Builder(
+    return new Notification.Action.Builder(
       Icon.createWithResource(context, R.drawable.ic_delete), "Save in...", savePendingIntent)
       .setAllowGeneratedReplies(false)
       .addRemoteInput(remoteInputForSaveAction)
       .build();
-
-    return saveAction;
   }
 }
