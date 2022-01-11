@@ -4,14 +4,19 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
 import android.widget.Toast;
 
+import androidx.activity.ComponentActivity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.content.FileProvider;
 
 import java.io.File;
 
-public class InvisibleShareActivity extends Activity {
-  public static String EXTRA_SCREENSHOT_PATH = "EXTRA_SCREENSHOT_PATH";
+public class InvisibleShareActivity extends ComponentActivity {
+  public static final String EXTRA_SCREENSHOT_PATH = "EXTRA_SCREENSHOT_PATH";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {

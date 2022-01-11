@@ -1,40 +1,51 @@
 package com.fabiosaac.screenshotlistener;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.RemoteInput;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.service.notification.StatusBarNotification;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 
 import java.io.File;
 import java.util.List;
 
-public class ScreenshotObserver extends ContentObserver {
+public class ScreenshotNotifier extends ContentObserver {
   private static int NOTIFICATION_ID = 102;
   private final Context context;
 
-  public ScreenshotObserver(Handler handler, Context context) {
+  public ScreenshotNotifier(Handler handler, Context context) {
     super(handler);
 
     this.context = context;
   }
 
-  @Override
-  public void onChange(boolean selfChange, @Nullable Uri uri) {
-    if (uri != null) {
-      String path = MediaManager.getPathFromUri(context, uri);
+  public static void sendNotification(Context context, String path) {
+    Log.d("    PERMISSION", String.valueOf(verifyStoragePermission(context)));
+
+    if (!verifyStoragePermission(context)) {
+      startPermissionsActivity(context, path);
+      return;
+    }
+
+    if (path != null) {
       File file = new File(path);
 
       if (
@@ -44,12 +55,12 @@ public class ScreenshotObserver extends ContentObserver {
           && file.lastModified() >= System.currentTimeMillis() - 10000
       ) {
         if (SettingsProvider.getInstance(context).getNotificationDisabled()) {
-          ScreenshotObserverService.handleStart(context, path);
+          ScreenshotNotifierService.handleStart(context, path);
         } else {
           Bitmap bitmap = BitmapFactory.decodeFile(path);
 
-          Intent notificationIntent = new Intent(context, ScreenshotObserverService.class);
-          notificationIntent.putExtra(ScreenshotObserverService.EXTRA_SCREENSHOT_PATH, path);
+          Intent notificationIntent = new Intent(context, ScreenshotNotifierService.class);
+          notificationIntent.putExtra(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH, path);
 
           PendingIntent notificationPendingIntent = PendingIntent.getService(context,
             NOTIFICATION_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -65,12 +76,12 @@ public class ScreenshotObserver extends ContentObserver {
             .setStyle(new Notification.BigPictureStyle()
               .bigPicture(bitmap)
               .bigLargeIcon((Bitmap) null))
-            .addAction(getShareAction(path))
-            .addAction(getDeleteAction(path))
-            .addAction(getSaveAction(path));
+            .addAction(getShareAction(context, path))
+            .addAction(getDeleteAction(context, path))
+            .addAction(getSaveAction(context, path));
 
           Bundle notificationExtras = new Bundle();
-          notificationExtras.putString(ScreenshotObserverService.EXTRA_SCREENSHOT_PATH, path);
+          notificationExtras.putString(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH, path);
           notificationBuilder.addExtras(notificationExtras);
 
           NotificationManager notificationManager =
@@ -87,7 +98,7 @@ public class ScreenshotObserver extends ContentObserver {
 
               for (StatusBarNotification notification : activeNotifications) {
                 String imagePath = notification.getNotification()
-                  .extras.getString(ScreenshotObserverService.EXTRA_SCREENSHOT_PATH);
+                  .extras.getString(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH);
 
                 if (imagePath != null) {
                   if (!(new File(imagePath).exists())) {
@@ -99,11 +110,35 @@ public class ScreenshotObserver extends ContentObserver {
         }
       }
     }
-
-    super.onChange(selfChange, uri);
   }
 
-  private Notification.Action getShareAction(String path) {
+  private static void startPermissionsActivity(Context context, String screenshotPath) {
+    Intent permissionsActivityIntent = new Intent(context, InvisiblePermissionsActivity.class);
+    permissionsActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    permissionsActivityIntent.putExtra(InvisiblePermissionsActivity.EXTRA_PERMISSION_CODE,
+      InvisiblePermissionsActivity.STORAGE);
+    permissionsActivityIntent.putExtra(InvisiblePermissionsActivity.EXTRA_SCREENSHOT_PATH,
+      screenshotPath);
+
+    context.startActivity(permissionsActivityIntent);
+  }
+
+  private static boolean verifyStoragePermission(Context context) {
+    boolean granted;
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      granted = !Environment.isExternalStorageManager();
+    } else {
+      granted = !(ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)
+        != PackageManager.PERMISSION_GRANTED
+        || ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        != PackageManager.PERMISSION_GRANTED);
+    }
+
+    return granted;
+  }
+
+  private static Notification.Action getShareAction(Context context, String path) {
     Intent shareIntent = new Intent(context, BroadcastActionReceiver.class);
     shareIntent.setAction(BroadcastActionReceiver.ACTION_SHARE);
     shareIntent.putExtra(BroadcastActionReceiver.EXTRA_SCREENSHOT_PATH, path);
@@ -117,7 +152,7 @@ public class ScreenshotObserver extends ContentObserver {
       sharePendingIntent).build();
   }
 
-  private Notification.Action getDeleteAction(String path) {
+  private static Notification.Action getDeleteAction(Context context, String path) {
     Intent deleteIntent = new Intent(context, BroadcastActionReceiver.class);
     deleteIntent.setAction(BroadcastActionReceiver.ACTION_DELETE);
     deleteIntent.putExtra(BroadcastActionReceiver.EXTRA_SCREENSHOT_PATH, path);
@@ -131,7 +166,7 @@ public class ScreenshotObserver extends ContentObserver {
       deletePendingIntent).build();
   }
 
-  private Notification.Action getSaveAction(String path) {
+  private static Notification.Action getSaveAction(Context context, String path) {
     List<String> albums =
       SettingsProvider.getInstance(context).getNotificationAlbums().equals("mostUsed")
         ? AlbumsProvider.getMostUsedAlbums(context.getApplicationContext()) : AlbumsProvider.getRecentAlbums(context.getApplicationContext());
@@ -158,5 +193,16 @@ public class ScreenshotObserver extends ContentObserver {
       .setAllowGeneratedReplies(false)
       .addRemoteInput(remoteInputForSaveAction)
       .build();
+  }
+
+  @Override
+  public void onChange(boolean selfChange, @Nullable Uri uri) {
+    if (uri != null) {
+      String path = MediaManager.getPathFromUri(context, uri);
+
+      sendNotification(context, path);
+    }
+
+    super.onChange(selfChange, uri);
   }
 }

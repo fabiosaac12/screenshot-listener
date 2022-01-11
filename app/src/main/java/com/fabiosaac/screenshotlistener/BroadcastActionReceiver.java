@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -132,7 +131,7 @@ public class BroadcastActionReceiver extends BroadcastReceiver {
   }
 
   private void startScreenshotObserverService(Context context) {
-    Intent screenshotObserverService = new Intent(context, ScreenshotObserverService.class);
+    Intent screenshotObserverService = new Intent(context, ScreenshotNotifierService.class);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       context.startForegroundService(screenshotObserverService);

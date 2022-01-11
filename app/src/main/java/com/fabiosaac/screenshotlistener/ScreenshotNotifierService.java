@@ -12,13 +12,16 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Process;
 import android.provider.MediaStore;
+import android.provider.Settings;
 
 import androidx.annotation.Nullable;
 
-public class ScreenshotObserverService extends Service {
+import java.io.File;
+
+public class ScreenshotNotifierService extends Service {
   public static final String EXTRA_SCREENSHOT_PATH = "EXTRA_SCREENSHOT_PATH";
   private static final int FOREGROUND_SERVICE_ID = 101;
-  private ScreenshotObserver screenshotObserver;
+  private ScreenshotNotifier screenshotNotifier;
 
   @Override
   public void onCreate() {
@@ -29,12 +32,12 @@ public class ScreenshotObserverService extends Service {
 
     final Handler handler = new Handler(handlerThread.getLooper());
 
-    screenshotObserver = new ScreenshotObserver(handler, this);
+    screenshotNotifier = new ScreenshotNotifier(handler, this);
 
     getContentResolver().registerContentObserver(
       MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
       true,
-      screenshotObserver
+      screenshotNotifier
     );
 
     handleStartForeground();
@@ -63,23 +66,40 @@ public class ScreenshotObserverService extends Service {
       String path = intent.getStringExtra(EXTRA_SCREENSHOT_PATH);
 
       if (path != null) {
-        ScreenshotWindow screenshotWindow = new ScreenshotWindow(this, path);
+        if (new File(path).exists()) {
+          if (Settings.canDrawOverlays(this)) {
+            ScreenshotWindow screenshotWindow = new ScreenshotWindow(this, path);
 
-        screenshotWindow.open();
+            screenshotWindow.open();
+          } else {
+            startPermissionsActivity(path);
+          }
+        }
       }
     }
 
     return START_STICKY;
   }
 
+  private void startPermissionsActivity(String screenshotPath) {
+    Intent permissionsActivityIntent = new Intent(this, InvisiblePermissionsActivity.class);
+    permissionsActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    permissionsActivityIntent.putExtra(InvisiblePermissionsActivity.EXTRA_PERMISSION_CODE,
+      InvisiblePermissionsActivity.CAN_DRAW_OVERLAY);
+    permissionsActivityIntent.putExtra(InvisiblePermissionsActivity.EXTRA_SCREENSHOT_PATH,
+      screenshotPath);
+
+    this.startActivity(permissionsActivityIntent);
+  }
+
   @Override
   public void onDestroy() {
     try {
-      getContentResolver().unregisterContentObserver(screenshotObserver);
+      getContentResolver().unregisterContentObserver(screenshotNotifier);
     } catch (Exception ignored) {
     }
 
-    screenshotObserver = null;
+    screenshotNotifier = null;
 
     NotificationManager notificationManager =
       this.getSystemService(NotificationManager.class);
@@ -93,7 +113,7 @@ public class ScreenshotObserverService extends Service {
     Context context = _context.getApplicationContext();
 
     if (SettingsProvider.getInstance(context).getServiceEnabled()) {
-      Intent intent = new Intent(context, ScreenshotObserverService.class);
+      Intent intent = new Intent(context, ScreenshotNotifierService.class);
       intent.putExtra(EXTRA_SCREENSHOT_PATH, path);
 
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -105,7 +125,7 @@ public class ScreenshotObserverService extends Service {
   }
 
   public static void handleStop(Context context) {
-    context.stopService(new Intent(context, ScreenshotObserverService.class));
+    context.stopService(new Intent(context, ScreenshotNotifierService.class));
   }
 
   @Nullable

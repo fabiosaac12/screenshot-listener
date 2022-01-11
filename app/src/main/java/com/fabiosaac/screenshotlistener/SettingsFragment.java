@@ -98,7 +98,7 @@ public class SettingsFragment extends Fragment {
     SwitchCompat serviceSwitch = context.findViewById(R.id.serviceSwitch);
 
     if (serviceSwitch.isChecked()) {
-      ScreenshotObserverService.handleStop(context);
+      ScreenshotNotifierService.handleStop(context);
 
       serviceSwitch.setChecked(false);
 

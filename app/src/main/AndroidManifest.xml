@@ -27,6 +27,11 @@
             android:excludeFromRecents="true"
             android:theme="@style/Theme.Transparent"/>
 
+        <activity
+            android:name=".InvisiblePermissionsActivity"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.Transparent"/>
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -57,7 +62,7 @@
         </receiver>
 
         <service
-            android:name=".ScreenshotObserverService"
+            android:name=".ScreenshotNotifierService"
             android:enabled="true"
             android:exported="false"
             android:process=":ServiceProcess"

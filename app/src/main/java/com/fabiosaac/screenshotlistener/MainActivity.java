@@ -1,11 +1,17 @@
 package com.fabiosaac.screenshotlistener;
 
+import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.Window;
 import android.view.WindowManager;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.FragmentActivity;
 
@@ -25,12 +31,31 @@ public class MainActivity extends FragmentActivity {
     initializeServiceSwitch();
 
     if (SettingsProvider.getInstance(this).getServiceEnabled()) {
-      ScreenshotObserverService.handleStart(this, null);
+      ScreenshotNotifierService.handleStart(this, null);
     }
 
     Window window = getWindow();
     window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
       WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
+    if (!Settings.canDrawOverlays(this)) {
+      Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+        Uri.parse("package:" + getPackageName()));
+
+      handleAskCanDrawOverlayPermission();
+    }
+  }
+
+  private void handleAskCanDrawOverlayPermission() {
+    ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
+      new ActivityResultContracts.StartActivityForResult(),
+      result -> {
+        if (result.getResultCode() == Activity.RESULT_OK) {
+          // There are no request codes
+          Intent data = result.getData();
+
+        }
+      });
   }
 
   private void initializeServiceSwitch() {
@@ -43,9 +68,9 @@ public class MainActivity extends FragmentActivity {
         SettingsProvider.getInstance(this).setServiceEnabled(value);
 
         if (value) {
-          ScreenshotObserverService.handleStart(this, null);
+          ScreenshotNotifierService.handleStart(this, null);
         } else {
-          ScreenshotObserverService.handleStop(this);
+          ScreenshotNotifierService.handleStop(this);
         }
       });
   }
