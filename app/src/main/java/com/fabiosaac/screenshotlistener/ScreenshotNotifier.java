@@ -19,7 +19,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.service.notification.StatusBarNotification;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -38,10 +37,8 @@ public class ScreenshotNotifier extends ContentObserver {
   }
 
   public static void sendNotification(Context context, String path) {
-    Log.d("    PERMISSION", String.valueOf(verifyStoragePermission(context)));
-
     if (!verifyStoragePermission(context)) {
-      startPermissionsActivity(context, path);
+      handleSendStoragePermissionNotification(context, path);
       return;
     }
 
@@ -57,85 +54,45 @@ public class ScreenshotNotifier extends ContentObserver {
         if (SettingsProvider.getInstance(context).getNotificationDisabled()) {
           ScreenshotNotifierService.handleStart(context, path);
         } else {
-          Bitmap bitmap = BitmapFactory.decodeFile(path);
-
-          Intent notificationIntent = new Intent(context, ScreenshotNotifierService.class);
-          notificationIntent.putExtra(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH, path);
-
-          PendingIntent notificationPendingIntent = PendingIntent.getService(context,
-            NOTIFICATION_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-          Notification.Builder notificationBuilder = new Notification.Builder(context,
-            MainActivity.CHANNEL_NEW_SCREENSHOT)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("New Screenshot")
-            .setContentText("Remember to have your gallery organized!")
-            .setContentIntent(notificationPendingIntent)
-            .setLargeIcon(bitmap)
-            .setAutoCancel(true)
-            .setStyle(new Notification.BigPictureStyle()
-              .bigPicture(bitmap)
-              .bigLargeIcon((Bitmap) null))
-            .addAction(getShareAction(context, path))
-            .addAction(getDeleteAction(context, path))
-            .addAction(getSaveAction(context, path));
-
-          Bundle notificationExtras = new Bundle();
-          notificationExtras.putString(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH, path);
-          notificationBuilder.addExtras(notificationExtras);
-
-          NotificationManager notificationManager =
-            context.getSystemService(NotificationManager.class);
-
-          int notificationId = SettingsProvider.getInstance(context).getAccumulateNotifications()
-            ? NOTIFICATION_ID++ : NOTIFICATION_ID;
-
-          notificationManager.notify(notificationId, notificationBuilder.build());
-
-          new android.os.Handler(Looper.getMainLooper()).postDelayed(
-            () -> {
-              StatusBarNotification[] activeNotifications = notificationManager.getActiveNotifications();
-
-              for (StatusBarNotification notification : activeNotifications) {
-                String imagePath = notification.getNotification()
-                  .extras.getString(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH);
-
-                if (imagePath != null) {
-                  if (!(new File(imagePath).exists())) {
-                    notificationManager.cancel(notification.getId());
-                  }
-                }
-              }
-            }, 1000);
+          handleSendScreenshotNotification(context, path);
         }
       }
     }
   }
 
-  private static void startPermissionsActivity(Context context, String screenshotPath) {
-    Intent permissionsActivityIntent = new Intent(context, InvisiblePermissionsActivity.class);
-    permissionsActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    permissionsActivityIntent.putExtra(InvisiblePermissionsActivity.EXTRA_PERMISSION_CODE,
-      InvisiblePermissionsActivity.STORAGE);
-    permissionsActivityIntent.putExtra(InvisiblePermissionsActivity.EXTRA_SCREENSHOT_PATH,
-      screenshotPath);
+  private  static void handleSendScreenshotNotification(Context context, String screenshotPath) {
+    Bitmap bitmap = BitmapFactory.decodeFile(screenshotPath);
 
-    context.startActivity(permissionsActivityIntent);
-  }
+    Intent notificationIntent = new Intent(context, ScreenshotNotifierService.class);
+    notificationIntent.putExtra(ScreenshotNotifierService.EXTRA_ACTION,
+      ScreenshotNotifierService.ACTION_OPEN_SCREENSHOT_WINDOW);
+    notificationIntent.putExtra(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH, screenshotPath);
 
-  private static boolean verifyStoragePermission(Context context) {
-    boolean granted;
+    PendingIntent notificationPendingIntent = PendingIntent.getService(context,
+      NOTIFICATION_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      granted = !Environment.isExternalStorageManager();
-    } else {
-      granted = !(ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)
-        != PackageManager.PERMISSION_GRANTED
-        || ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        != PackageManager.PERMISSION_GRANTED);
-    }
+    Notification.Builder notificationBuilder = new Notification.Builder(context,
+      MainActivity.CHANNEL_NEW_SCREENSHOT)
+      .setSmallIcon(R.mipmap.ic_launcher)
+      .setContentTitle("New Screenshot")
+      .setContentText("Remember to have your gallery organized!")
+      .setContentIntent(notificationPendingIntent)
+      .setLargeIcon(bitmap)
+      .setAutoCancel(true)
+      .setStyle(new Notification.BigPictureStyle()
+        .bigPicture(bitmap)
+        .bigLargeIcon((Bitmap) null))
+      .addAction(getShareAction(context, screenshotPath))
+      .addAction(getDeleteAction(context, screenshotPath))
+      .addAction(getSaveAction(context, screenshotPath));
 
-    return granted;
+    Bundle notificationExtras = new Bundle();
+    notificationExtras.putString(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH, screenshotPath);
+    notificationBuilder.addExtras(notificationExtras);
+
+    sendNotification(context, notificationBuilder);
+
+    clearNotificationsWithBadScreenshotPath(context);
   }
 
   private static Notification.Action getShareAction(Context context, String path) {
@@ -193,6 +150,76 @@ public class ScreenshotNotifier extends ContentObserver {
       .setAllowGeneratedReplies(false)
       .addRemoteInput(remoteInputForSaveAction)
       .build();
+  }
+
+  private static void handleSendStoragePermissionNotification(Context context, String screenshotPath) {
+    Intent notificationIntent = new Intent(context, ScreenshotNotifierService.class);
+    notificationIntent.putExtra(ScreenshotNotifierService.EXTRA_ACTION,
+      ScreenshotNotifierService.ACTION_ASK_STORAGE_PERMISSION);
+    notificationIntent.putExtra(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH, screenshotPath);
+
+    PendingIntent notificationPendingIntent = PendingIntent.getService(context,
+      NOTIFICATION_ID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+    Notification.Builder notificationBuilder = new Notification.Builder(context,
+      MainActivity.CHANNEL_NEW_SCREENSHOT)
+      .setSmallIcon(R.mipmap.ic_launcher)
+      .setContentTitle("New Screenshot")
+      .setContentText("I need your permission to access your screenshots!")
+      .setContentIntent(notificationPendingIntent)
+      .setAutoCancel(true);
+
+    Bundle notificationExtras = new Bundle();
+    notificationExtras.putString(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH, screenshotPath);
+    notificationBuilder.addExtras(notificationExtras);
+
+    sendNotification(context, notificationBuilder);
+  }
+
+  private static void sendNotification(Context context, Notification.Builder notificationBuilder) {
+    NotificationManager notificationManager =
+      context.getSystemService(NotificationManager.class);
+
+    int notificationId = SettingsProvider.getInstance(context).getAccumulateNotifications()
+      ? NOTIFICATION_ID++ : NOTIFICATION_ID;
+
+    notificationManager.notify(notificationId, notificationBuilder.build());
+  }
+
+  private static void clearNotificationsWithBadScreenshotPath(Context context) {
+    NotificationManager notificationManager =
+      context.getSystemService(NotificationManager.class);
+
+    new android.os.Handler(Looper.getMainLooper()).postDelayed(
+      () -> {
+        StatusBarNotification[] activeNotifications = notificationManager.getActiveNotifications();
+
+        for (StatusBarNotification notification : activeNotifications) {
+          String imagePath = notification.getNotification()
+            .extras.getString(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH);
+
+          if (imagePath != null) {
+            if (!(new File(imagePath).exists())) {
+              notificationManager.cancel(notification.getId());
+            }
+          }
+        }
+      }, 1000);
+  }
+
+  private static boolean verifyStoragePermission(Context context) {
+    boolean granted;
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      granted = !Environment.isExternalStorageManager();
+    } else {
+      granted = !(ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)
+        != PackageManager.PERMISSION_GRANTED
+        || ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        != PackageManager.PERMISSION_GRANTED);
+    }
+
+    return granted;
   }
 
   @Override

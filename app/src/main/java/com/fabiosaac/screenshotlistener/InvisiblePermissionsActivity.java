@@ -1,13 +1,11 @@
 package com.fabiosaac.screenshotlistener;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.util.Log;
 
 import androidx.activity.ComponentActivity;
 import androidx.activity.result.ActivityResultLauncher;
@@ -23,23 +21,16 @@ public class InvisiblePermissionsActivity extends ComponentActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    Log.d("    lol", "activity started");
-
     Intent intent = getIntent();
 
     int permissionCode = intent.getIntExtra(EXTRA_PERMISSION_CODE, 0);
-    String screenshotPath = intent.getStringExtra(EXTRA_SCREENSHOT_PATH);
 
     switch (permissionCode) {
       case CAN_DRAW_OVERLAY:
         ActivityResultLauncher<Intent> canDrawOverlayPermissionLauncher = registerForActivityResult(
           new ActivityResultContracts.StartActivityForResult(),
-          result -> {
-            if (result.getResultCode() == Activity.RESULT_OK) {
-              Log.d("result", "        OK");
-            }
-            Log.d("result", "        NO");
-          });
+          result -> {}
+        );
 
         canDrawOverlayPermissionLauncher.launch(
           new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -57,10 +48,6 @@ public class InvisiblePermissionsActivity extends ComponentActivity {
         break;
     }
 
-//    if (screenshotPath != null) {
-//      ScreenshotNotifier.sendNotification(this.getApplicationContext(), screenshotPath);
-//    }
-
-//    finish();
+    finish();
   }
 }

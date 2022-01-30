@@ -19,7 +19,10 @@ import androidx.annotation.Nullable;
 import java.io.File;
 
 public class ScreenshotNotifierService extends Service {
+  public static final String EXTRA_ACTION = "EXTRA_ACTION";
   public static final String EXTRA_SCREENSHOT_PATH = "EXTRA_SCREENSHOT_PATH";
+  public static final String ACTION_ASK_STORAGE_PERMISSION = "EXTRA_ACTION_ASK_STORAGE_PERMISSION";
+  public static final String ACTION_OPEN_SCREENSHOT_WINDOW = "EXTRA_ACTION_OPEN_SCREENSHOT_WINDOW";
   private static final int FOREGROUND_SERVICE_ID = 101;
   private ScreenshotNotifier screenshotNotifier;
 
@@ -63,29 +66,39 @@ public class ScreenshotNotifierService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     if (intent != null) {
-      String path = intent.getStringExtra(EXTRA_SCREENSHOT_PATH);
+      String action = intent.getStringExtra(EXTRA_ACTION);
 
-      if (path != null) {
-        if (new File(path).exists()) {
-          if (Settings.canDrawOverlays(this)) {
-            ScreenshotWindow screenshotWindow = new ScreenshotWindow(this, path);
+      if (action != null) {
+        String screenshotPath = intent.getStringExtra(EXTRA_SCREENSHOT_PATH);
 
-            screenshotWindow.open();
-          } else {
-            startPermissionsActivity(path);
-          }
+        if (action.equals(ACTION_OPEN_SCREENSHOT_WINDOW)) {
+          openScreenshotWindow(screenshotPath);
+        } else if (action.equals(ACTION_ASK_STORAGE_PERMISSION)) {
+          startPermissionsActivity(screenshotPath, InvisiblePermissionsActivity.STORAGE);
         }
       }
     }
-
     return START_STICKY;
   }
 
-  private void startPermissionsActivity(String screenshotPath) {
+  private void openScreenshotWindow(String screenshotPath) {
+    if (screenshotPath != null) {
+      if (new File(screenshotPath).exists()) {
+        if (Settings.canDrawOverlays(this)) {
+          ScreenshotWindow screenshotWindow = new ScreenshotWindow(this, screenshotPath);
+
+          screenshotWindow.open();
+        } else {
+          startPermissionsActivity(screenshotPath, InvisiblePermissionsActivity.CAN_DRAW_OVERLAY);
+        }
+      }
+    }
+  }
+
+  private void startPermissionsActivity(String screenshotPath, int permission) {
     Intent permissionsActivityIntent = new Intent(this, InvisiblePermissionsActivity.class);
     permissionsActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    permissionsActivityIntent.putExtra(InvisiblePermissionsActivity.EXTRA_PERMISSION_CODE,
-      InvisiblePermissionsActivity.CAN_DRAW_OVERLAY);
+    permissionsActivityIntent.putExtra(InvisiblePermissionsActivity.EXTRA_PERMISSION_CODE, permission);
     permissionsActivityIntent.putExtra(InvisiblePermissionsActivity.EXTRA_SCREENSHOT_PATH,
       screenshotPath);
 
