@@ -56,7 +56,7 @@ public class ScreenshotNotifierService extends Service {
         MainActivity.CHANNEL_SCREENSHOT_OBSERVER_SERVICE)
         .setContentTitle("Screenshot Listener")
         .setContentText("Listening to screenshots")
-        .setSmallIcon(R.mipmap.ic_launcher)
+        .setSmallIcon(R.drawable.app_icon)
         .setContentIntent(pendingIntent)
         .build();
 

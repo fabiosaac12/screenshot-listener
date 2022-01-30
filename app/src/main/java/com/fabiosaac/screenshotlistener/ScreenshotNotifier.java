@@ -27,7 +27,7 @@ import java.io.File;
 import java.util.List;
 
 public class ScreenshotNotifier extends ContentObserver {
-  private static int NOTIFICATION_ID = 102;
+  private static int NOTIFICATION_ID = 103;
   private final Context context;
 
   public ScreenshotNotifier(Handler handler, Context context) {
@@ -73,7 +73,7 @@ public class ScreenshotNotifier extends ContentObserver {
 
     Notification.Builder notificationBuilder = new Notification.Builder(context,
       MainActivity.CHANNEL_NEW_SCREENSHOT)
-      .setSmallIcon(R.mipmap.ic_launcher)
+      .setSmallIcon(R.drawable.app_icon)
       .setContentTitle("New Screenshot")
       .setContentText("Remember to have your gallery organized!")
       .setContentIntent(notificationPendingIntent)
@@ -90,7 +90,10 @@ public class ScreenshotNotifier extends ContentObserver {
     notificationExtras.putString(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH, screenshotPath);
     notificationBuilder.addExtras(notificationExtras);
 
-    sendNotification(context, notificationBuilder);
+    int notificationId = SettingsProvider.getInstance(context).getAccumulateNotifications()
+      ? NOTIFICATION_ID++ : NOTIFICATION_ID;
+
+    sendNotification(context, notificationBuilder, notificationId);
 
     clearNotificationsWithBadScreenshotPath(context);
   }
@@ -163,7 +166,7 @@ public class ScreenshotNotifier extends ContentObserver {
 
     Notification.Builder notificationBuilder = new Notification.Builder(context,
       MainActivity.CHANNEL_NEW_SCREENSHOT)
-      .setSmallIcon(R.mipmap.ic_launcher)
+      .setSmallIcon(R.drawable.app_icon)
       .setContentTitle("New Screenshot")
       .setContentText("I need your permission to access your screenshots!")
       .setContentIntent(notificationPendingIntent)
@@ -173,15 +176,16 @@ public class ScreenshotNotifier extends ContentObserver {
     notificationExtras.putString(ScreenshotNotifierService.EXTRA_SCREENSHOT_PATH, screenshotPath);
     notificationBuilder.addExtras(notificationExtras);
 
-    sendNotification(context, notificationBuilder);
+    sendNotification(context, notificationBuilder, 102);
   }
 
-  private static void sendNotification(Context context, Notification.Builder notificationBuilder) {
+  private static void sendNotification(
+    Context context,
+    Notification.Builder notificationBuilder,
+    int notificationId
+  ) {
     NotificationManager notificationManager =
       context.getSystemService(NotificationManager.class);
-
-    int notificationId = SettingsProvider.getInstance(context).getAccumulateNotifications()
-      ? NOTIFICATION_ID++ : NOTIFICATION_ID;
 
     notificationManager.notify(notificationId, notificationBuilder.build());
   }
